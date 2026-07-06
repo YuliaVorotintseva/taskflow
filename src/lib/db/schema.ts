@@ -20,7 +20,7 @@ export const users = pgTable('users', {
   email: text('email').unique(),
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   image: text('image'),
-  // Ваши кастомные поля:
+  password: text('password'),
   role: text('role').default('user'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -72,10 +72,6 @@ export const verificationTokens = pgTable(
     }),
   })
 );
-
-// ============================================
-// ТАБЛИЦЫ ДЛЯ ПРИЛОЖЕНИЯ
-// ============================================
 
 export const projects = pgTable('projects', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -129,10 +125,6 @@ export const issues = pgTable('issues', {
   columnIdx: index('issue_column_idx').on(table.columnId),
   assigneeIdx: index('issue_assignee_idx').on(table.assigneeId),
 }));
-
-// ============================================
-// RELATIONS
-// ============================================
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
