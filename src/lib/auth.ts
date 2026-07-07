@@ -1,16 +1,21 @@
-import NextAuth from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import GitHub from 'next-auth/providers/github';
-import Google from 'next-auth/providers/google';
-import { eq } from 'drizzle-orm';
-import bcrypt from 'bcryptjs';
+import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
-import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
+import { db } from "@/lib/db";
+import { users, accounts, sessions, verificationTokens } from "@/lib/db/schema";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   providers: [
     GitHub({
       clientId: process.env.GITHUB_ID,
@@ -21,10 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GOOGLE_SECRET,
     }),
     Credentials({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -55,21 +60,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           image: user.image,
           role: user.role,
         };
-      }
-    })
+      },
+    }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   callbacks: {
-    session({ session, user }) {
+    async jwt({ token, user }) {
+      if (!!user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = user.image;
+      }
+      return token;
+    },
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = user.id;
+        if (token.id) {
+          session.user.id = token.id as string;
+        }
+        if (token.email) {
+          session.user.email = token.email as string;
+        }
+        if (token.name) {
+          session.user.name = token.name as string;
+        }
+        if (token.picture) {
+          session.user.image = token.picture as string;
+        }
       }
       return session;
     },
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: "/auth/signin",
   },
 });
