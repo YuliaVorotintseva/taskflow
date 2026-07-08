@@ -1,21 +1,55 @@
 "use client";
 
-import { useQueryState } from "nuqs";
+import { parseAsString, parseAsStringEnum, useQueryStates } from "nuqs";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { trpc } from "@/components/providers";
 
 interface SidebarFiltersProps {
   projectId: string;
 }
 
 export function SidebarFilters({ projectId }: SidebarFiltersProps) {
-  const [search, setSearch] = useQueryState("search");
-  const [priority, setPriority] = useQueryState("priority");
+  const [filters, setFilters] = useQueryStates(
+    {
+      search: parseAsString.withDefault(""),
+      priority: parseAsStringEnum(["low", "medium", "high"]),
+      assigneeId: parseAsString,
+    },
+    {
+      history: "push",
+      shallow: false,
+    },
+  );
+
+  const { data: allIssues } = trpc.issue.listByProject.useQuery({
+    projectId,
+    limit: 100,
+  });
+
+  const assignees = allIssues
+    ? Array.from(
+        new Map(
+          allIssues
+            .filter((i) => i.assignee)
+            .map((i) => [i.assignee!.id, i.assignee!]),
+        ).values(),
+      )
+    : [];
+
+  const hasActiveFilters =
+    filters.search || filters.priority || filters.assigneeId;
+
+  const priorityLabels = {
+    low: "Низкий",
+    medium: "Средний",
+    high: "Высокий",
+  };
 
   return (
-    <div className="w-64 border-r p-4 space-y-6">
+    <div className="w-64 border-r p-4 space-y-6 overflow-y-auto">
       <div>
         <h3 className="font-semibold mb-3">Фильтры</h3>
 
@@ -25,41 +59,91 @@ export function SidebarFilters({ projectId }: SidebarFiltersProps) {
             <Input
               id="search"
               placeholder="Название задачи..."
-              value={search || ""}
-              onChange={(e) => setSearch(e.target.value || null)}
+              value={filters.search}
+              onChange={(e) => setFilters({ search: e.target.value || null })}
+              className="mt-1"
             />
           </div>
 
           <div>
             <Label>Приоритет</Label>
             <div className="space-y-2 mt-2">
-              {["low", "medium", "high"].map((p) => (
+              {(["low", "medium", "high"] as const).map((p) => (
                 <Button
                   key={p}
-                  variant={priority === p ? "default" : "outline"}
+                  variant={filters.priority === p ? "default" : "outline"}
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => setPriority(priority === p ? null : p)}
+                  onClick={() =>
+                    setFilters({
+                      priority: filters.priority === p ? null : p,
+                    })
+                  }
                 >
-                  {p === "low" && "Низкий"}
-                  {p === "medium" && "Средний"}
-                  {p === "high" && "Высокий"}
+                  {priorityLabels[p]}
                 </Button>
               ))}
             </div>
           </div>
 
-          {(search || priority) && (
+          {assignees.length > 0 && (
+            <div>
+              <Label>Исполнитель</Label>
+              <div className="space-y-2 mt-2">
+                {assignees.map((assignee) => (
+                  <Button
+                    key={assignee.id}
+                    variant={
+                      filters.assigneeId === assignee.id ? "default" : "outline"
+                    }
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() =>
+                      setFilters({
+                        assigneeId:
+                          filters.assigneeId === assignee.id
+                            ? null
+                            : assignee.id,
+                      })
+                    }
+                  >
+                    {assignee.name || assignee.email}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setSearch(null);
-                setPriority(null);
-              }}
+              onClick={() =>
+                setFilters({
+                  search: null,
+                  priority: null,
+                  assigneeId: null,
+                })
+              }
+              className="w-full"
             >
               Сбросить фильтры
             </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="pt-4 border-t">
+        <h3 className="font-semibold mb-2 text-sm">Статистика</h3>
+        <div className="text-sm text-muted-foreground space-y-1">
+          <div>Всего задач: {allIssues?.length || 0}</div>
+          {filters.priority && (
+            <div>
+              С фильтром:{" "}
+              {allIssues?.filter(
+                (i) => i.metadata?.priority === filters.priority,
+              ).length || 0}
+            </div>
           )}
         </div>
       </div>
