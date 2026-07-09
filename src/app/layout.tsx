@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { TRPCProvider } from "@/components/providers";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
+import { CommandPalette } from "@/components/command-palette";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <TRPCProvider>
           {children}
           <Toaster />
+          <CommandPalette />
         </TRPCProvider>
       </body>
     </html>
