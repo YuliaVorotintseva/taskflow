@@ -10,6 +10,8 @@ import {
   primaryKey,
 } from "drizzle-orm/pg-core";
 
+import { ActivityMetadata } from "./activity-types";
+
 type AdapterAccountType = "oidc" | "oauth" | "email" | "webauthn";
 
 export const users = pgTable("users", {
@@ -191,6 +193,39 @@ export const issuesRelations = relations(issues, ({ one }) => ({
   }),
 }));
 
+export const activities = pgTable(
+  "activities",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: text("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    metadata: jsonb("metadata").$type<ActivityMetadata>(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    projectIdx: index("activity_project_idx").on(table.projectId),
+    createdAtIdx: index("activity_created_idx").on(table.createdAt),
+  }),
+);
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  project: one(projects, {
+    fields: [activities.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
@@ -208,3 +243,6 @@ export type NewColumn = typeof columns.$inferInsert;
 
 export type Issue = typeof issues.$inferSelect;
 export type NewIssue = typeof issues.$inferInsert;
+
+export type Activity = typeof activities.$inferSelect;
+export type NewActivity = typeof activities.$inferInsert;

@@ -1,36 +1,60 @@
+import { formatDistanceToNow } from "date-fns";
+import { ru } from "date-fns/locale";
+
+import { api } from "@/lib/trpc/client";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface ActivityFeedProps {
-  projectSlug: string;
+  projectId: string;
 }
 
-export function ActivityFeed({ projectSlug }: ActivityFeedProps) {
-  console.log(projectSlug);
+export async function ActivityFeed({ projectId }: ActivityFeedProps) {
+  const data = await api();
+  const activities = await data.activity.getByProject({ projectId });
 
-  const activities = [
-    {
-      id: 1,
-      text: 'Задача "Implement feature" создана',
-      time: "5 минут назад",
-    },
-    {
-      id: 2,
-      text: 'Задача "Fix bug" перемещена в Done',
-      time: "10 минут назад",
-    },
-    { id: 3, text: "Новый комментарий к задаче", time: "1 час назад" },
-  ];
+  const actionLabels: Record<string, string> = {
+    created: "создал(а)",
+    updated: "обновил(а)",
+    deleted: "удалил(а)",
+    moved: "переместил(а)",
+  };
+
+  const entityLabels: Record<string, string> = {
+    issue: "задачу",
+    column: "колонку",
+    project: "проект",
+  };
+
+  if (activities.length === 0) {
+    return (
+      <div className="w-80 border-l p-4">
+        <h3 className="font-semibold mb-4">Активность</h3>
+        <p className="text-sm text-muted-foreground">
+          Пока нет активности в проекте
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-80 border-l p-4">
+    <div className="w-80 border-l p-4 overflow-y-auto">
       <h3 className="font-semibold mb-4">Активность</h3>
       <div className="space-y-3">
         {activities.map((activity) => (
           <Card key={activity.id}>
             <CardContent className="p-3">
-              <p className="text-sm">{activity.text}</p>
+              <p className="text-sm">
+                <span className="font-medium">
+                  {activity.user?.name || "Пользователь"}
+                </span>{" "}
+                {actionLabels[activity.action] || activity.action}{" "}
+                {entityLabels[activity.entityType] || activity.entityType}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {activity.time}
+                {formatDistanceToNow(new Date(activity.createdAt), {
+                  addSuffix: true,
+                  locale: ru,
+                })}
               </p>
             </CardContent>
           </Card>
