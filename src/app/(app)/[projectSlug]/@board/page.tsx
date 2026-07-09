@@ -7,7 +7,7 @@ export default async function BoardPage({
   searchParams,
 }: {
   params: Promise<{ projectSlug: string }>;
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
 
@@ -15,9 +15,11 @@ export default async function BoardPage({
     return null;
   }
 
+  const data = await api();
   const { projectSlug } = await params;
-  const projectData = await api();
-  const project = await projectData.project.getBySlug({
+  const search = await searchParams;
+
+  const project = await data.project.getBySlug({
     slug: projectSlug,
   });
 
@@ -26,16 +28,32 @@ export default async function BoardPage({
   }
 
   const filters = {
-    assigneeId: searchParams.assigneeId as string | undefined,
-    priority: searchParams.priority as "low" | "medium" | "high" | undefined,
-    search: searchParams.search as string | undefined,
+    assigneeId: search.assigneeId as string | undefined,
+    priority: search.priority as "low" | "medium" | "high" | undefined,
+    search: search.search as string | undefined,
   };
 
-  const boardData = await api();
-  const board = await boardData.issue.getBoardData({
+  const cleanFilters = Object.fromEntries(
+    Object.entries(filters).filter(([_, v]) => v !== undefined),
+  );
+
+  const boardData = await data.issue.getBoardData({
     projectId: project.id,
-    filters: Object.keys(filters).length > 0 ? filters : undefined,
+    filters:
+      Object.keys(cleanFilters).length > 0
+        ? (cleanFilters as {
+            assigneeId?: string | undefined;
+            priority?: "low" | "medium" | "high" | undefined;
+            search?: string | undefined;
+          })
+        : undefined,
   });
 
-  return <KanbanBoard projectId={project.id} data={board} />;
+  return (
+    <KanbanBoard
+      projectId={project.id}
+      projectSlug={projectSlug}
+      data={boardData}
+    />
+  );
 }
