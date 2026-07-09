@@ -9,9 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createProject } from "@/app/actions/project";
 import { toast } from "@/components/ui/use-toast";
+import { trpc } from "../providers";
 
 export function CreateProjectForm() {
   const router = useRouter();
+  const utils = trpc.useUtils();
+
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -57,6 +60,9 @@ export function CreateProjectForm() {
         title: "Проект создан",
         description: "Перенаправляем на страницу проекта...",
       });
+
+      await utils.project.getAll.invalidate();
+      router.refresh();
       router.push(`/${result.projectSlug}`);
     } else {
       toast({

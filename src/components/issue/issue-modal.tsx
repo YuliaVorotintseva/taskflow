@@ -19,12 +19,12 @@ interface IssueModalProps {
 export function IssueModal({ issue, projectSlug }: IssueModalProps) {
   const router = useRouter();
 
-  const handleClose = () => {
-    router.back();
+  const handleClose = (open: boolean) => {
+    if (!open) router.back();
   };
 
   return (
-    <Dialog open={true} onOpenChange={handleClose}>
+    <Dialog defaultOpen={true} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{issue.title}</DialogTitle>
