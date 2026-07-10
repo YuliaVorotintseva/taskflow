@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { ActivityMetadata } from "./activity-types";
+import { IssueMetadata } from "./issue-types";
 
 type AdapterAccountType = "oidc" | "oauth" | "email" | "webauthn";
 
@@ -123,12 +124,7 @@ export const issues = pgTable(
     assigneeId: text("assignee_id").references(() => users.id),
     title: text("title").notNull(),
     description: text("description"),
-    metadata: jsonb("metadata").$type<{
-      estimate?: number;
-      priority?: "low" | "medium" | "high";
-      dueDate?: string;
-      labels?: string[];
-    }>(),
+    metadata: jsonb("metadata").$type<IssueMetadata>(),
     position: integer("position").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

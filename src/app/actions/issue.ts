@@ -2,11 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql, asc } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { issues, projects } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
+import { activities, columns, issues, projects } from "@/lib/db/schema";
+import { IssueMetadata } from "@/lib/db/issue-types";
 
 const prioritySchema = z.enum(["low", "medium", "high"]);
 
@@ -17,6 +18,32 @@ const createIssueSchema = z.object({
   description: z.string().max(5000).optional(),
   priority: prioritySchema.optional(),
   projectSlug: z.string(),
+});
+
+const updateIssueSchema = z.object({
+  issueId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  projectSlug: z.string(),
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(10000).optional().nullable(),
+  priority: prioritySchema.optional().nullable(),
+  columnId: z.string().uuid().optional(),
+});
+
+const moveIssueSchema = z.object({
+  issueId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  projectSlug: z.string(),
+  fromColumnId: z.string().uuid(),
+  toColumnId: z.string().uuid(),
+  newPosition: z.number().int().min(0),
+});
+
+const reorderIssuesSchema = z.object({
+  projectId: z.string().uuid(),
+  projectSlug: z.string(),
+  columnId: z.string().uuid(),
+  orderedIssueIds: z.array(z.string().uuid()),
 });
 
 export async function createIssue(formData: FormData) {
@@ -66,25 +93,252 @@ export async function createIssue(formData: FormData) {
 
     const newPosition = lastIssue ? lastIssue.position + 1 : 0;
 
-    const metadata = priority ? { priority } : {};
+    const metadata: IssueMetadata = priority ? { priority } : {};
 
-    await db.insert(issues).values({
+    const [newIssue] = await db
+      .insert(issues)
+      .values({
+        projectId,
+        columnId,
+        title,
+        description: description || null,
+        metadata,
+        position: newPosition,
+      })
+      .returning();
+
+    const column = await db.query.columns.findFirst({
+      where: eq(columns.id, columnId),
+    });
+
+    await db.insert(activities).values({
       projectId,
-      columnId,
-      title,
-      description: description || null,
-      metadata,
-      position: newPosition,
+      userId: session.user.id,
+      action: "created",
+      entityType: "issue",
+      entityId: newIssue.id,
+      metadata: {
+        title,
+        columnId,
+        columnName: column?.name || "Unknown",
+      },
     });
 
     revalidatePath(`/${projectSlug}`);
 
-    return { success: true };
+    return { success: true, issueId: newIssue.id };
   } catch (error) {
     console.error("Create issue error:", error);
     return {
       success: false,
       error: "Произошла ошибка при создании задачи",
+    };
+  }
+}
+
+export async function updateIssue(formData: FormData) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Необходима авторизация" };
+  }
+
+  const validatedFields = updateIssueSchema.safeParse({
+    issueId: formData.get("issueId"),
+    projectId: formData.get("projectId"),
+    projectSlug: formData.get("projectSlug"),
+    title: formData.get("title") || undefined,
+    description: formData.get("description"),
+    priority: formData.get("priority") || undefined,
+    columnId: formData.get("columnId") || undefined,
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      error: "Ошибка валидации",
+    };
+  }
+
+  const { issueId, projectId, projectSlug, title, description, priority } =
+    validatedFields.data;
+
+  try {
+    const issue = await db.query.issues.findFirst({
+      where: eq(issues.id, issueId),
+    });
+
+    if (!issue) {
+      return { success: false, error: "Задача не найдена" };
+    }
+
+    const updateData: {
+      updatedAt: Date;
+      title?: string;
+      description?: string | null;
+      metadata?: IssueMetadata;
+    } = { updatedAt: new Date() };
+
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+
+    const cleanPriority = priority ?? undefined;
+    if (cleanPriority !== undefined) {
+      const currentMetadata: IssueMetadata =
+        (issue.metadata as IssueMetadata) || {};
+      updateData.metadata = {
+        ...currentMetadata,
+        priority: cleanPriority,
+      };
+    }
+
+    await db.update(issues).set(updateData).where(eq(issues.id, issueId));
+
+    await db.insert(activities).values({
+      projectId,
+      userId: session.user.id,
+      action: "updated",
+      entityType: "issue",
+      entityId: issueId,
+      metadata: {
+        title: title || issue.title,
+      },
+    });
+
+    revalidatePath(`/${projectSlug}`);
+    revalidatePath(`/${projectSlug}/issue/${issueId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Update issue error:", error);
+    return {
+      success: false,
+      error: "Произошла ошибка при обновлении задачи",
+    };
+  }
+}
+
+export async function moveIssue(formData: FormData) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Необходима авторизация" };
+  }
+
+  const validatedFields = moveIssueSchema.safeParse({
+    issueId: formData.get("issueId"),
+    projectId: formData.get("projectId"),
+    projectSlug: formData.get("projectSlug"),
+    fromColumnId: formData.get("fromColumnId"),
+    toColumnId: formData.get("toColumnId"),
+    newPosition: Number(formData.get("newPosition")),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      error: "Ошибка валидации",
+    };
+  }
+
+  const {
+    issueId,
+    projectId,
+    projectSlug,
+    fromColumnId,
+    toColumnId,
+    newPosition,
+  } = validatedFields.data;
+
+  try {
+    const issue = await db.query.issues.findFirst({
+      where: eq(issues.id, issueId),
+    });
+
+    if (!issue) {
+      return { success: false, error: "Задача не найдена" };
+    }
+
+    const [fromColumn, toColumn] = await Promise.all([
+      db.query.columns.findFirst({ where: eq(columns.id, fromColumnId) }),
+      db.query.columns.findFirst({ where: eq(columns.id, toColumnId) }),
+    ]);
+
+    await db
+      .update(issues)
+      .set({
+        columnId: toColumnId,
+        position: newPosition,
+        updatedAt: new Date(),
+      })
+      .where(eq(issues.id, issueId));
+
+    const targetIssues = await db.query.issues.findMany({
+      where: and(
+        eq(issues.columnId, toColumnId),
+        sql`${issues.id} != ${issueId}`,
+      ),
+      orderBy: [asc(issues.position)],
+    });
+
+    const reindexPromises: Promise<unknown>[] = [];
+    let currentIndex = 0;
+
+    for (let i = 0; i < targetIssues.length; i++) {
+      if (i === newPosition) {
+        reindexPromises.push(
+          db
+            .update(issues)
+            .set({ position: currentIndex })
+            .where(eq(issues.id, issueId)),
+        );
+        currentIndex++;
+      }
+      reindexPromises.push(
+        db
+          .update(issues)
+          .set({ position: currentIndex })
+          .where(eq(issues.id, targetIssues[i].id)),
+      );
+      currentIndex++;
+    }
+
+    if (newPosition >= targetIssues.length) {
+      reindexPromises.push(
+        db
+          .update(issues)
+          .set({ position: currentIndex })
+          .where(eq(issues.id, issueId)),
+      );
+    }
+
+    await Promise.all(reindexPromises);
+
+    if (fromColumnId !== toColumnId) {
+      await db.insert(activities).values({
+        projectId,
+        userId: session.user.id,
+        action: "moved",
+        entityType: "issue",
+        entityId: issueId,
+        metadata: {
+          fromColumnId,
+          fromColumnName: fromColumn?.name || "Unknown",
+          toColumnId,
+          toColumnName: toColumn?.name || "Unknown",
+          title: issue.title,
+        },
+      });
+    }
+
+    revalidatePath(`/${projectSlug}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Move issue error:", error);
+    return {
+      success: false,
+      error: "Произошла ошибка при перемещении задачи",
     };
   }
 }
@@ -107,6 +361,17 @@ export async function deleteIssue(issueId: string, projectSlug: string) {
     }
 
     await db.delete(issues).where(eq(issues.id, issueId));
+
+    await db.insert(activities).values({
+      projectId: issue.projectId,
+      userId: session.user.id,
+      action: "deleted",
+      entityType: "issue",
+      entityId: issueId,
+      metadata: {
+        title: issue.title,
+      },
+    });
 
     revalidatePath(`/${projectSlug}`);
 
