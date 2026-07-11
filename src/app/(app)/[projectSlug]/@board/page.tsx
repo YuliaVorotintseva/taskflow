@@ -15,11 +15,11 @@ export default async function BoardPage({
     return null;
   }
 
-  const data = await api();
   const { projectSlug } = await params;
-  const search = await searchParams;
+  const sp = await searchParams;
 
-  const project = await data.project.getBySlug({
+  const trpcApi = await api();
+  const project = await trpcApi.project.getBySlug({
     slug: projectSlug,
   });
 
@@ -28,23 +28,21 @@ export default async function BoardPage({
   }
 
   const filters = {
-    assigneeId: search.assigneeId as string | undefined,
-    priority: search.priority as "low" | "medium" | "high" | undefined,
-    search: search.search as string | undefined,
+    assigneeId: sp.assigneeId as string | undefined,
+    priority: sp.priority as "low" | "medium" | "high" | undefined,
+    search: sp.search as string | undefined,
   };
 
   const cleanFilters = Object.fromEntries(
     Object.entries(filters).filter(([_, v]) => v !== undefined),
   );
 
-  const boardData = await data.issue.getBoardData({
+  const boardData = await trpcApi.issue.getBoardData({
     projectId: project.id,
     filters:
       Object.keys(cleanFilters).length > 0
         ? (cleanFilters as {
-            assigneeId?: string | undefined;
-            priority?: "low" | "medium" | "high" | undefined;
-            search?: string | undefined;
+            [k: string]: string | undefined;
           })
         : undefined,
   });

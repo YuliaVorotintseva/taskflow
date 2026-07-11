@@ -5,11 +5,15 @@ import { api } from "@/lib/trpc/client";
 import { ProjectHeader } from "@/components/project/project-header";
 
 export default async function ProjectLayout({
-  children,
   params,
+  sidebar,
+  board,
+  activity,
 }: {
-  children: React.ReactNode;
   params: Promise<{ projectSlug: string }>;
+  sidebar: React.ReactNode;
+  board: React.ReactNode;
+  activity: React.ReactNode;
 }) {
   const session = await auth();
 
@@ -18,8 +22,9 @@ export default async function ProjectLayout({
   }
 
   const { projectSlug } = await params;
-  const data = await api();
-  const project = await data.project.getBySlug({
+
+  const trpcApi = await api();
+  const project = await trpcApi.project.getBySlug({
     slug: projectSlug,
   });
 
@@ -30,7 +35,11 @@ export default async function ProjectLayout({
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
       <ProjectHeader project={project} />
-      <div className="flex-1 flex overflow-hidden">{children}</div>
+      <div className="flex-1 flex overflow-hidden">
+        {sidebar}
+        {board}
+        {activity}
+      </div>
     </div>
   );
 }
