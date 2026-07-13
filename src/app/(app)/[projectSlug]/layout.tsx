@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ReactNode } from "react";
 
 import { auth } from "@/lib/auth";
 import { api } from "@/lib/trpc/client";
@@ -9,11 +10,13 @@ export default async function ProjectLayout({
   sidebar,
   board,
   activity,
+  children,
 }: {
   params: Promise<{ projectSlug: string }>;
-  sidebar: React.ReactNode;
-  board: React.ReactNode;
-  activity: React.ReactNode;
+  sidebar: ReactNode;
+  board: ReactNode;
+  activity: ReactNode;
+  children: ReactNode;
 }) {
   const session = await auth();
 
@@ -35,10 +38,11 @@ export default async function ProjectLayout({
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
       <ProjectHeader project={project} />
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-w-0">
         {sidebar}
-        {board}
+        <div className="flex-1 min-w-0">{board}</div>
         {activity}
+        {children}
       </div>
     </div>
   );

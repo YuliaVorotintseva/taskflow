@@ -38,7 +38,7 @@ export function SortableColumn({
   const issueIds = column.issues.map((issue) => issue.id);
 
   return (
-    <div className="flex-shrink-0 w-80">
+    <div className="flex-shrink-0 w-80 max-w-sm">
       <Card className={isOver ? "ring-2 ring-primary" : ""}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">

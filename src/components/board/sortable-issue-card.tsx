@@ -1,6 +1,7 @@
 "use client";
 
 import { useSortable } from "@dnd-kit/sortable";
+import { GripVertical } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 
 import type { Issue } from "@/lib/db/schema";
@@ -38,12 +39,22 @@ export function SortableIssueCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <IssueCard
-        issue={issue}
-        projectSlug={projectSlug}
-        isDragging={isDragging}
-      />
+    <div ref={setNodeRef} style={style} className="relative">
+      <button
+        {...attributes}
+        {...listeners}
+        className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 hover:opacity-100 cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+
+      <div className="pl-8">
+        <IssueCard
+          issue={issue}
+          projectSlug={projectSlug}
+          isDragging={isDragging}
+        />
+      </div>
     </div>
   );
 }

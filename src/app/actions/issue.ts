@@ -39,13 +39,6 @@ const moveIssueSchema = z.object({
   newPosition: z.number().int().min(0),
 });
 
-const reorderIssuesSchema = z.object({
-  projectId: z.string().uuid(),
-  projectSlug: z.string(),
-  columnId: z.string().uuid(),
-  orderedIssueIds: z.array(z.string().uuid()),
-});
-
 export async function createIssue(formData: FormData) {
   const session = await auth();
 
@@ -57,7 +50,7 @@ export async function createIssue(formData: FormData) {
     projectId: formData.get("projectId"),
     columnId: formData.get("columnId"),
     title: formData.get("title"),
-    description: formData.get("description"),
+    description: formData.get("description") || undefined,
     priority: formData.get("priority") || undefined,
     projectSlug: formData.get("projectSlug"),
   });

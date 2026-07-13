@@ -18,6 +18,9 @@ export default async function IssueFullPage({
   const issue = await data.issue.getById({
     id: issueId,
   });
+  console.log(projectSlug);
+  console.log(issueId);
+  console.log(issue);
 
   if (!issue) {
     return null;

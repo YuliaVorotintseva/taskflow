@@ -246,16 +246,18 @@ export function KanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 flex gap-4 p-4 overflow-x-auto">
-        {optimisticBoard.columns.map((column) => (
-          <SortableColumn
-            key={column.id}
-            column={column}
-            projectId={projectId}
-            projectSlug={projectSlug}
-          />
-        ))}
-        <AddColumnForm projectId={projectId} projectSlug={projectSlug} />
+      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+        <div className="flex gap-4 p-4 min-w-fit h-full">
+          {optimisticBoard.columns.map((column) => (
+            <SortableColumn
+              key={column.id}
+              column={column}
+              projectId={projectId}
+              projectSlug={projectSlug}
+            />
+          ))}
+          <AddColumnForm projectId={projectId} projectSlug={projectSlug} />
+        </div>
       </div>
 
       <DragOverlay>

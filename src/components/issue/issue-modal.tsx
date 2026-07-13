@@ -117,7 +117,7 @@ export const IssueModal = ({ issue, projectSlug }: IssueModalProps) => {
   }, [isDirty, handleSave]);
 
   return (
-    <Dialog defaultOpen={true} onOpenChange={handleClose}>
+    <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
