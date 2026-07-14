@@ -27,20 +27,27 @@ export default async function ProjectLayout({
   const { projectSlug } = await params;
 
   const trpcApi = await api();
-  const project = await trpcApi.project.getBySlug({
-    slug: projectSlug,
-  });
+
+  let project;
+  try {
+    project = await trpcApi.project.getBySlug({
+      slug: projectSlug,
+    });
+  } catch (error: unknown) {
+    console.error(error);
+    notFound();
+  }
 
   if (!project) {
     notFound();
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex flex-col overflow-hidden">
       <ProjectHeader project={project} />
-      <div className="flex-1 flex overflow-hidden min-w-0">
+      <div className="flex-1 flex">
         {sidebar}
-        <div className="flex-1 min-w-0">{board}</div>
+        <div className="flex-1">{board}</div>
         {activity}
         {children}
       </div>

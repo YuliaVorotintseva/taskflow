@@ -227,8 +227,11 @@ export function KanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-4 p-4 min-w-fit h-full">
+      <div className="h-full w-full">
+        <div
+          className="flex gap-4 p-4 min-w-fit h-full"
+          style={{ minWidth: "max-content" }}
+        >
           {optimisticBoard.columns.map((column) => (
             <SortableColumn
               key={column.id}

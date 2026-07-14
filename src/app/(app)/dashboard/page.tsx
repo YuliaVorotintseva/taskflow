@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
 import { api } from "@/lib/trpc/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateProjectForm } from "@/components/project/create-project-form";
+import { ProjectCard } from "@/components/project/project-card";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -29,23 +28,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
-          <Link key={project.id} href={`/${project.slug}`}>
-            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">{project.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {project.description && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {project.description}
-                  </p>
-                )}
-                <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span>/{project.slug}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <ProjectCard key={project.id} project={project} />
         ))}
 
         <CreateProjectForm />

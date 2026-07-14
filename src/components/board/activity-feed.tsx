@@ -37,7 +37,7 @@ export async function ActivityFeed({ projectId }: ActivityFeedProps) {
   }
 
   return (
-    <div className="w-80 border-l p-4 overflow-y-auto">
+    <div className="w-80 border-l p-4 flex-shrink-0 overflow-y-auto h-full">
       <h3 className="font-semibold mb-4">Активность</h3>
       <div className="space-y-3">
         {activities.map((activity) => (

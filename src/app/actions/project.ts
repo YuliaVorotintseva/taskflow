@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/lib/db";
@@ -18,11 +18,30 @@ const createProjectSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
+const updateProjectSchema = z.object({
+  projectId: z.string().uuid(),
+  currentSlug: z.string(),
+  name: z.string().min(1, "Название обязательно").max(100),
+  slug: z
+    .string()
+    .min(3, "Минимум 3 символа")
+    .max(50, "Максимум 50 символов")
+    .regex(/^[a-z0-9-]+$/, "Только латинские буквы, цифры и дефис"),
+  description: z.string().max(500).optional(),
+});
+
 export type CreateProjectResult = {
   success: boolean;
   error?: string;
   fieldErrors?: Record<string, string[]>;
   projectSlug?: string;
+};
+
+export type UpdateProjectResult = {
+  success: boolean;
+  error?: string;
+  fieldErrors?: Record<string, string[]>;
+  newSlug?: string;
 };
 
 export async function createProject(
@@ -88,6 +107,89 @@ export async function createProject(
     return {
       success: false,
       error: "Произошла ошибка при создании проекта",
+    };
+  }
+}
+
+export async function updateProject(
+  formData: FormData,
+): Promise<UpdateProjectResult> {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Необходима авторизация" };
+  }
+
+  const validatedFields = updateProjectSchema.safeParse({
+    projectId: formData.get("projectId"),
+    currentSlug: formData.get("currentSlug"),
+    name: formData.get("name"),
+    slug: formData.get("slug"),
+    description: formData.get("description"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      fieldErrors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { projectId, currentSlug, name, slug, description } =
+    validatedFields.data;
+
+  try {
+    const project = await db.query.projects.findFirst({
+      where: and(
+        eq(projects.id, projectId),
+        eq(projects.userId, session.user.id),
+      ),
+    });
+
+    if (!project) {
+      return { success: false, error: "Проект не найден" };
+    }
+
+    if (slug !== currentSlug) {
+      const existingProject = await db.query.projects.findFirst({
+        where: and(
+          eq(projects.slug, slug),
+          eq(projects.userId, session.user.id),
+        ),
+      });
+
+      if (existingProject) {
+        return {
+          success: false,
+          error: "Проект с таким URL уже существует",
+        };
+      }
+    }
+
+    await db
+      .update(projects)
+      .set({
+        name,
+        slug,
+        description: description || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(projects.id, projectId));
+
+    revalidatePath("/dashboard");
+    revalidatePath("/", "layout");
+    revalidatePath(`/${currentSlug}`);
+    revalidatePath(`/${slug}`);
+
+    return {
+      success: true,
+      newSlug: slug !== currentSlug ? slug : undefined,
+    };
+  } catch (error) {
+    console.error("Update project error:", error);
+    return {
+      success: false,
+      error: "Произошла ошибка при обновлении проекта",
     };
   }
 }
