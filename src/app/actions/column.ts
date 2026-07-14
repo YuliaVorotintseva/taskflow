@@ -14,6 +14,13 @@ const createColumnSchema = z.object({
   projectSlug: z.string(),
 });
 
+const updateColumnSchema = z.object({
+  columnId: z.string().uuid(),
+  projectId: z.string().uuid(),
+  projectSlug: z.string(),
+  name: z.string().min(1, "Название обязательно").max(50),
+});
+
 export async function createColumn(formData: FormData) {
   const session = await auth();
 
@@ -71,6 +78,55 @@ export async function createColumn(formData: FormData) {
     return {
       success: false,
       error: "Произошла ошибка при создании колонки",
+    };
+  }
+}
+
+export async function updateColumn(formData: FormData) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { success: false, error: "Необходима авторизация" };
+  }
+
+  const validatedFields = updateColumnSchema.safeParse({
+    columnId: formData.get("columnId"),
+    projectId: formData.get("projectId"),
+    projectSlug: formData.get("projectSlug"),
+    name: formData.get("name"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      error:
+        validatedFields.error.flatten().fieldErrors.name?.[0] ||
+        "Ошибка валидации",
+    };
+  }
+
+  const { columnId, projectId, projectSlug, name } = validatedFields.data;
+
+  try {
+    const column = await db.query.columns.findFirst({
+      where: eq(columns.id, columnId),
+      with: { project: true },
+    });
+
+    if (!column || column.project.userId !== session.user.id) {
+      return { success: false, error: "Колонка не найдена" };
+    }
+
+    await db.update(columns).set({ name }).where(eq(columns.id, columnId));
+
+    revalidatePath(`/${projectSlug}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Update column error:", error);
+    return {
+      success: false,
+      error: "Произошла ошибка при обновлении колонки",
     };
   }
 }
