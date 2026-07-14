@@ -43,7 +43,7 @@ export function SortableIssueCard({
       <button
         {...attributes}
         {...listeners}
-        className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 hover:opacity-100 cursor-grab active:cursor-grabbing"
+        className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
       >
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>

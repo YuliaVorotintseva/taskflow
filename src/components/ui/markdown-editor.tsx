@@ -42,6 +42,7 @@ export const MarkdownEditor = ({
   className,
 }: MarkdownEditorProps) => {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       Placeholder.configure({

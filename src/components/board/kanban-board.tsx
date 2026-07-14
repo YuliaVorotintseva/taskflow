@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -52,42 +52,6 @@ type OptimisticAction =
       };
     };
 
-const boardReducer = (
-  state: OptimisticBoard,
-  action: OptimisticAction,
-): OptimisticBoard => {
-  switch (action.type) {
-    case "MOVE_ISSUE": {
-      const { issueId, fromColumnId, toColumnId, newPosition } = action.payload;
-
-      const newColumns = state.columns.map((col) => ({
-        ...col,
-        issues: [...col.issues],
-      }));
-
-      const fromCol = newColumns.find((c) => c.id === fromColumnId);
-      const toCol = newColumns.find((c) => c.id === toColumnId);
-
-      if (!fromCol || !toCol) return state;
-
-      const issueIndex = fromCol.issues.findIndex((i) => i.id === issueId);
-      if (issueIndex === -1) return state;
-
-      const [issue] = fromCol.issues.splice(issueIndex, 1);
-
-      const safePosition = Math.min(newPosition, toCol.issues.length);
-      toCol.issues.splice(safePosition, 0, issue);
-
-      return { columns: newColumns };
-    }
-    case "RESET": {
-      return { columns: action.payload.columns };
-    }
-    default:
-      return state;
-  }
-};
-
 export function KanbanBoard({
   projectId,
   projectSlug,
@@ -99,7 +63,29 @@ export function KanbanBoard({
   const [optimisticBoard, setOptimisticBoard] = useOptimistic<
     OptimisticBoard,
     OptimisticAction
-  >({ columns: data.columns }, boardReducer);
+  >({ columns: data.columns }, (state, action) => {
+    if (action.type !== "MOVE_ISSUE") return state;
+
+    const { issueId, fromColumnId, toColumnId, newPosition } = action.payload;
+
+    const newColumns = state.columns.map((col) => ({
+      ...col,
+      issues: [...col.issues],
+    }));
+
+    const fromCol = newColumns.find((c) => c.id === fromColumnId);
+    const toCol = newColumns.find((c) => c.id === toColumnId);
+
+    if (!fromCol || !toCol) return state;
+
+    const issueIndex = fromCol.issues.findIndex((i) => i.id === issueId);
+    if (issueIndex === -1) return state;
+
+    const [issue] = fromCol.issues.splice(issueIndex, 1);
+    toCol.issues.splice(newPosition, 0, issue);
+
+    return { columns: newColumns };
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -157,18 +143,6 @@ export function KanbanBoard({
     }
 
     if (!toColumnId) return;
-
-    const fromColumnId = activeData.issue.columnId;
-
-    setOptimisticBoard({
-      type: "MOVE_ISSUE",
-      payload: {
-        issueId: activeIssueId,
-        fromColumnId,
-        toColumnId,
-        newPosition,
-      },
-    });
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -218,6 +192,13 @@ export function KanbanBoard({
     ) {
       return;
     }
+
+    startTransition(() => {
+      setOptimisticBoard({
+        type: "MOVE_ISSUE",
+        payload: { issueId, fromColumnId, toColumnId, newPosition },
+      });
+    });
 
     const formData = new FormData();
     formData.append("issueId", issueId);
