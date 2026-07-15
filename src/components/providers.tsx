@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { TRPCError } from "@trpc/server";
+import { useRouter } from "next/navigation";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
@@ -18,7 +20,38 @@ function getBaseUrl() {
 }
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const router = useRouter();
+
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: (failureCount, error) => {
+              if (error instanceof TRPCError && error.code === "UNAUTHORIZED") {
+                return false;
+              }
+              return failureCount < 3;
+            },
+            staleTime: 5 * 60 * 1000,
+          },
+        },
+      }),
+  );
+
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.type === "updated" && event.action.type === "error") {
+        const error = event.query.state.error;
+
+        if (error instanceof TRPCError && error.code === "UNAUTHORIZED") {
+          router.push("/auth/signin");
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [queryClient, router]);
 
   const [trpcClient] = useState(() =>
     trpc.createClient({

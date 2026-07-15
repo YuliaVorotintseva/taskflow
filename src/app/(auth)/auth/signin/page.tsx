@@ -1,22 +1,26 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { auth } from '@/lib/auth';
-import { SigninForm } from '@/components/auth/signin-form';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { signInWithGithub, signInWithGoogle } from '@/app/actions/oauth';
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { SigninForm } from "@/components/auth/signin-form";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { signInWithGithub, signInWithGoogle } from "@/app/actions/oauth";
 
 export const metadata: Metadata = {
-  title: 'Вход | TaskFlow',
-  description: 'Войдите в свой аккаунт TaskFlow',
+  title: "Вход | TaskFlow",
+  description: "Войдите в свой аккаунт TaskFlow",
 };
 
-export default async function SigninPage() {
+export default async function SigninPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
   const session = await auth();
 
   if (session) {
-    redirect('/dashboard');
+    const { callbackUrl } = await searchParams;
+    redirect(callbackUrl || "/dashboard");
   }
 
   return (

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,8 @@ type SigninFormValues = z.infer<typeof signinSchema>;
 
 export function SigninForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<SigninFormValues>({
@@ -53,6 +55,7 @@ export function SigninForm() {
           description: "Добро пожаловать!",
         });
 
+        router.push(callbackUrl);
         router.refresh();
 
         setTimeout(() => {

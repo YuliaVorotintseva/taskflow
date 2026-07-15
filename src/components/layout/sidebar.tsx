@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { FolderKanban, LayoutDashboard } from "lucide-react";
 
@@ -9,7 +10,30 @@ import { cn } from "@/lib/utils";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { data: projects } = trpc.project.getAll.useQuery();
+  const { status } = useSession();
+
+  const { data: projects } = trpc.project.getAll.useQuery(undefined, {
+    enabled: status === "authenticated", // ← Ключевое изменение
+  });
+
+  if (status === "loading") {
+    return (
+      <aside className="w-64 border-r bg-white/50 backdrop-blur-sm p-4">
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 bg-muted rounded" />
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-8 bg-muted rounded" />
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return null;
+  }
 
   return (
     <aside className="w-64 border-r bg-white/50 backdrop-blur-sm p-4 overflow-y-auto">
