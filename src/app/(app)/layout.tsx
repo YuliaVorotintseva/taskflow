@@ -16,11 +16,11 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col h-screen w-full overflow-hidden bg-background">
       <Header user={session.user!} />
-      <div className="flex">
+      <div className="flex-1 flex">
         <Sidebar />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 flex overflow-hidden w-full">{children}</main>
       </div>
     </div>
   );

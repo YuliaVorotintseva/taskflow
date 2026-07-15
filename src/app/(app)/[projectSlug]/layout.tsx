@@ -43,12 +43,24 @@ export default async function ProjectLayout({
   }
 
   return (
-    <div className="flex flex-col overflow-hidden">
-      <ProjectHeader project={project} />
-      <div className="flex-1 flex">
-        {sidebar}
-        <div className="flex-1">{board}</div>
-        {activity}
+    <div className="flex flex-col flex-1 w-full overflow-hidden bg-background">
+      <div className="flex-shrink-0 w-full z-20 border-b bg-background">
+        <ProjectHeader project={project} />
+      </div>
+
+      <div className="flex-1 flex overflow-hidden w-full">
+        <div className="w-64 flex-shrink-0 border-r bg-background overflow-y-auto">
+          {sidebar}
+        </div>
+
+        <div className="flex-1 min-w-0 overflow-x-auto overflow-y-auto bg-muted/10 relative">
+          {board}
+        </div>
+
+        <div className="w-80 flex-shrink-0 border-l bg-background overflow-y-auto">
+          {activity}
+        </div>
+
         {children}
       </div>
     </div>

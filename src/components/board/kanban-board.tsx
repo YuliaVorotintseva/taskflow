@@ -229,7 +229,7 @@ export function KanbanBoard({
     >
       <div className="h-full w-full">
         <div
-          className="flex gap-4 p-4 min-w-fit h-full"
+          className="flex h-full p-4 gap-4 min-w-max"
           style={{ minWidth: "max-content" }}
         >
           {optimisticBoard.columns.map((column) => (

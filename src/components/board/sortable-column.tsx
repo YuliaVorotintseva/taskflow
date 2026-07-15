@@ -124,9 +124,11 @@ export function SortableColumn({
   };
 
   return (
-    <div className="flex-shrink-0 w-80">
-      <Card className={isOver ? "ring-2 ring-primary" : ""}>
-        <CardHeader className="pb-3">
+    <div className="flex-shrink-0 w-80 flex flex-col h-full">
+      <Card
+        className={`flex flex-col h-full ${isOver ? "ring-2 ring-primary" : ""} soft-shadow`}
+      >
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             {isEditingTitle ? (
               <div className="flex items-center gap-2 flex-1">
@@ -213,7 +215,7 @@ export function SortableColumn({
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="flex-1 overflow-y-auto space-y-2 px-4 pb-4">
           <div ref={setNodeRef} className="min-h-[50px] space-y-2">
             <SortableContext
               items={issueIds}
@@ -229,24 +231,26 @@ export function SortableColumn({
             </SortableContext>
           </div>
 
-          {isAddingIssue ? (
-            <AddIssueForm
-              projectId={projectId}
-              columnId={column.id}
-              projectSlug={projectSlug}
-              onCancel={() => setIsAddingIssue(false)}
-              onAdded={() => setIsAddingIssue(false)}
-            />
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-muted-foreground"
-              onClick={() => setIsAddingIssue(true)}
-            >
-              + Добавить задачу
-            </Button>
-          )}
+          <div className="pt-2 flex-shrink-0">
+            {isAddingIssue ? (
+              <AddIssueForm
+                projectId={projectId}
+                columnId={column.id}
+                projectSlug={projectSlug}
+                onCancel={() => setIsAddingIssue(false)}
+                onAdded={() => setIsAddingIssue(false)}
+              />
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-muted-foreground"
+                onClick={() => setIsAddingIssue(true)}
+              >
+                + Добавить задачу
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

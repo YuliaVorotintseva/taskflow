@@ -51,7 +51,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow group">
+      <Card className="hover-lift group bg-white border-gray-200">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <Link href={`/${project.slug}`} className="flex-1">

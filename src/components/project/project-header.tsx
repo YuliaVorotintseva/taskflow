@@ -52,10 +52,12 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
 
   return (
     <>
-      <div className="border-b px-6 py-4">
+      <div className="border-b bg-white/50 backdrop-blur-sm px-6 py-4 soft-shadow">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">{project.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {project.name}
+            </h1>
             {project.description && (
               <p className="text-sm text-muted-foreground mt-1">
                 {project.description}
@@ -67,15 +69,17 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               variant="outline"
               size="sm"
               onClick={() => setIsEditing(true)}
+              className="hover:bg-primary/10 hover:text-primary hover:border-primary"
             >
               <Pencil className="h-4 w-4 mr-2" />
               Редактировать
             </Button>
             <Button
-              variant="destructive"
+              variant="outline"
               size="sm"
               onClick={handleDelete}
               disabled={isDeleting}
+              className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {isDeleting ? "Удаление..." : "Удалить"}

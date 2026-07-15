@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     <div className="container mx-auto p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Мои проекты</h1>
+          <h1 className="text-3xl font-bold text-foreground">Мои проекты</h1>
           <p className="text-muted-foreground mt-1">
             Управляйте своими задачами и проектами
           </p>

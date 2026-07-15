@@ -16,9 +16,7 @@ export const IssueCard = ({
   return (
     <Link href={`/${projectSlug}/issue/${issue.id}`} className="block">
       <Card
-        className={`hover:shadow-md transition-shadow cursor-pointer ${
-          isDragging ? "shadow-xl" : ""
-        }`}
+        className={`group hover:shadow-md transition-all duration-200 cursor-default ${isDragging ? "shadow-xl scale-105" : ""}`}
       >
         <CardContent className="p-4">
           <div className="font-medium text-sm mb-2">{issue.title}</div>
