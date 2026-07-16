@@ -12,13 +12,19 @@ import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { updateIssue, deleteIssue } from "@/app/actions/issue";
 import { toast } from "@/components/ui/use-toast";
 import { trpc } from "@/components/providers";
+import { CommentsSection } from "./comments-section";
 
 interface IssueModalProps {
   issue: Issue;
   projectSlug: string;
+  currentUserId: string;
 }
 
-export const IssueModal = ({ issue, projectSlug }: IssueModalProps) => {
+export const IssueModal = ({
+  issue,
+  projectSlug,
+  currentUserId,
+}: IssueModalProps) => {
   const router = useRouter();
   const utils = trpc.useUtils();
 
@@ -183,6 +189,9 @@ export const IssueModal = ({ issue, projectSlug }: IssueModalProps) => {
               </div>
             )}
           </div>
+        </div>
+        <div className="border-t pt-4 mt-4">
+          <CommentsSection issueId={issue.id} currentUserId={currentUserId} />
         </div>
       </DialogContent>
     </Dialog>

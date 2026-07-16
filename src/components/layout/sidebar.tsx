@@ -13,7 +13,7 @@ export function Sidebar() {
   const { status } = useSession();
 
   const { data: projects } = trpc.project.getAll.useQuery(undefined, {
-    enabled: status === "authenticated", // ← Ключевое изменение
+    enabled: status === "authenticated",
   });
 
   if (status === "loading") {

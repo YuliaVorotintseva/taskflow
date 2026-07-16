@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Users } from "lucide-react";
 
 import type { Project } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
@@ -10,16 +10,26 @@ import { ProjectEditModal } from "./edit-project-modal";
 import { deleteProject } from "@/app/actions/project";
 import { toast } from "@/components/ui/use-toast";
 import { trpc } from "@/components/providers";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { MembersList } from "./members-list";
 
 interface ProjectHeaderProps {
   project: Project;
+  currentUserId: string;
 }
 
-export function ProjectHeader({ project }: ProjectHeaderProps) {
+export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
   const router = useRouter();
   const utils = trpc.useUtils();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMembersOpen, setIsMembersOpen] = useState(false);
 
   const handleDelete = async () => {
     if (
@@ -65,6 +75,24 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
             )}
           </div>
           <div className="flex gap-2 ml-4">
+            <Dialog open={isMembersOpen} onOpenChange={setIsMembersOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Users className="h-4 w-4 mr-2" />
+                  Участники
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Участники проекта</DialogTitle>
+                </DialogHeader>
+                <MembersList
+                  projectId={project.id}
+                  currentUserId={currentUserId}
+                />
+              </DialogContent>
+            </Dialog>
+
             <Button
               variant="outline"
               size="sm"

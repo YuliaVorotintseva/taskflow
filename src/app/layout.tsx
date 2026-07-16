@@ -7,6 +7,7 @@ import { CommandPalette } from "@/components/command-palette";
 import { KeyboardShortcuts } from "@/components/ui/keyboard-shortcuts";
 
 import "./globals.css";
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,12 +24,14 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={inter.className}>
-        <TRPCProvider>
-          {children}
-          <Toaster />
-          <CommandPalette />
-          <KeyboardShortcuts />
-        </TRPCProvider>
+        <SessionProvider>
+          <TRPCProvider>
+            {children}
+            <Toaster />
+            <CommandPalette />
+            <KeyboardShortcuts />
+          </TRPCProvider>
+        </SessionProvider>
       </body>
     </html>
   );

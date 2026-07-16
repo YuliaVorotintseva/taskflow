@@ -23,5 +23,11 @@ export default async function IssueModalPage({
     return null;
   }
 
-  return <IssueModal issue={issue} projectSlug={projectSlug} />;
+  return (
+    <IssueModal
+      issue={issue}
+      projectSlug={projectSlug}
+      currentUserId={session.user?.id || ""}
+    />
+  );
 }

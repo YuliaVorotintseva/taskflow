@@ -45,7 +45,10 @@ export default async function ProjectLayout({
   return (
     <div className="flex flex-col flex-1 w-full overflow-hidden bg-background">
       <div className="flex-shrink-0 w-full z-20 border-b bg-background">
-        <ProjectHeader project={project} />
+        <ProjectHeader
+          project={project}
+          currentUserId={session.user?.id || ""}
+        />
       </div>
 
       <div className="flex-1 flex overflow-hidden w-full">

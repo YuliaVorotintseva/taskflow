@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, isNull } from "drizzle-orm";
+import { eq, and, desc, isNull, inArray } from "drizzle-orm";
 
 import { router, protectedProcedure } from "../trpc";
 import {
@@ -29,36 +29,72 @@ export const commentRouter = router({
   getByIssue: protectedProcedure
     .input(z.object({ issueId: z.string().uuid() }))
     .query(async ({ input, ctx }) => {
-      return ctx.db.query.comments.findMany({
-        where: and(
-          eq(comments.issueId, input.issueId),
-          isNull(comments.parentId),
-        ),
-        orderBy: [desc(comments.createdAt)],
-        with: {
-          user: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-          replies: {
-            orderBy: [comments.createdAt],
-            with: {
-              user: {
-                columns: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  image: true,
-                },
+      try {
+        const rootComments = await ctx.db.query.comments.findMany({
+          where: and(
+            eq(comments.issueId, input.issueId),
+            isNull(comments.parentId),
+          ),
+          orderBy: [desc(comments.createdAt)],
+          with: {
+            user: {
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
               },
             },
           },
-        },
-      });
+        });
+
+        if (rootComments.length === 0) {
+          return [];
+        }
+
+        const rootCommentIds = rootComments.map((c) => c.id);
+
+        const replies = await ctx.db.query.comments.findMany({
+          where: and(
+            eq(comments.issueId, input.issueId),
+            inArray(comments.parentId, rootCommentIds),
+          ),
+          orderBy: [comments.createdAt],
+          with: {
+            user: {
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+              },
+            },
+          },
+        });
+
+        const repliesByParent = replies.reduce(
+          (acc, reply) => {
+            const parentId = reply.parentId;
+            if (parentId) {
+              if (!acc[parentId]) acc[parentId] = [];
+              acc[parentId].push(reply);
+            }
+            return acc;
+          },
+          {} as Record<string, typeof replies>,
+        );
+
+        return rootComments.map((comment) => ({
+          ...comment,
+          replies: repliesByParent[comment.id] || [],
+        }));
+      } catch (error) {
+        console.error("Get comments error:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Не удалось загрузить комментарии",
+        });
+      }
     }),
 
   create: protectedProcedure
