@@ -15,6 +15,13 @@
       "when": 1783609842918,
       "tag": "0001_square_princess_powerful",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784190703078,
+      "tag": "0002_familiar_king_bedlam",
+      "breakpoints": true
     }
   ]
 }

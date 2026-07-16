@@ -8,10 +8,13 @@ import {
   jsonb,
   index,
   primaryKey,
+  AnyPgColumn,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 import { ActivityMetadata } from "./activity-types";
 import { IssueMetadata } from "./issue-types";
+import { NotificationMetadata } from "./notification-types";
 
 type AdapterAccountType = "oidc" | "oauth" | "email" | "webauthn";
 
@@ -141,6 +144,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
   projects: many(projects),
   assignedIssues: many(issues),
+  projectMemberships: many(projectMembers),
+  comments: many(comments),
+  notifications: many(notifications),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -164,6 +170,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   columns: many(columns),
   issues: many(issues),
+  members: many(projectMembers),
 }));
 
 export const columnsRelations = relations(columns, ({ one, many }) => ({
@@ -174,7 +181,7 @@ export const columnsRelations = relations(columns, ({ one, many }) => ({
   issues: many(issues),
 }));
 
-export const issuesRelations = relations(issues, ({ one }) => ({
+export const issuesRelations = relations(issues, ({ one, many }) => ({
   project: one(projects, {
     fields: [issues.projectId],
     references: [projects.id],
@@ -187,6 +194,7 @@ export const issuesRelations = relations(issues, ({ one }) => ({
     fields: [issues.assigneeId],
     references: [users.id],
   }),
+  comments: many(comments),
 }));
 
 export const activities = pgTable(
@@ -222,6 +230,109 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
   }),
 }));
 
+export const projectMembers = pgTable(
+  "project_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    projectId: uuid("project_id")
+      .references(() => projects.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: text("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    role: text("role").default("member").notNull(),
+    invitedAt: timestamp("invited_at").defaultNow().notNull(),
+    joinedAt: timestamp("joined_at"),
+  },
+  (table) => ({
+    projectUserIdx: index("project_member_project_user_idx").on(
+      table.projectId,
+      table.userId,
+    ),
+    userIdx: index("project_member_user_idx").on(table.userId),
+  }),
+);
+
+export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectMembers.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [projectMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    issueId: uuid("issue_id")
+      .references(() => issues.id, { onDelete: "cascade" })
+      .notNull(),
+    userId: text("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    content: text("content").notNull(),
+    parentId: uuid("parent_id").references((): AnyPgColumn => comments.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    issueIdx: index("comment_issue_idx").on(table.issueId),
+    userIdx: index("comment_user_idx").on(table.userId),
+    parentIdx: index("comment_parent_idx").on(table.parentId),
+  }),
+);
+
+export const commentsRelations = relations(comments, ({ one, many }) => ({
+  issue: one(issues, {
+    fields: [comments.issueId],
+    references: [issues.id],
+  }),
+  user: one(users, {
+    fields: [comments.userId],
+    references: [users.id],
+  }),
+  parent: one(comments, {
+    fields: [comments.parentId],
+    references: [comments.id],
+  }),
+  replies: many(comments),
+}));
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    link: text("link"),
+    metadata: jsonb("metadata").$type<NotificationMetadata>(),
+    isRead: boolean("is_read").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdx: index("notification_user_idx").on(table.userId),
+    isReadIdx: index("notification_is_read_idx").on(table.isRead),
+    createdAtIdx: index("notification_created_idx").on(table.createdAt),
+  }),
+);
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
@@ -242,3 +353,12 @@ export type NewIssue = typeof issues.$inferInsert;
 
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
+
+export type ProjectMember = typeof projectMembers.$inferSelect;
+export type NewProjectMember = typeof projectMembers.$inferInsert;
+
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;
+
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
