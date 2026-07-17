@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { auth } from "@/lib/auth";
 import { api } from "@/lib/trpc/client";
 import { IssuePage } from "@/components/issue/issue-page";
@@ -15,12 +17,21 @@ export default async function IssueFullPage({
 
   const { projectSlug, issueId } = await params;
   const data = await api();
-  const issue = await data.issue.getById({
-    id: issueId,
-  });
+
+  let issue;
+  try {
+    issue = await data.issue.getById({ id: issueId });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("не найдена")) {
+      redirect(`/${projectSlug}`);
+    }
+
+    console.error("Error loading issue:", error);
+    return null;
+  }
 
   if (!issue) {
-    return null;
+    redirect(`/${projectSlug}`);
   }
 
   return <IssuePage issue={issue} projectSlug={projectSlug} />;

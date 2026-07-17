@@ -24,10 +24,16 @@ export function SidebarFilters({ projectId }: SidebarFiltersProps) {
     },
   );
 
-  const { data: allIssues } = trpc.issue.listByProject.useQuery({
-    projectId,
-    limit: 100,
-  });
+  const { data: allIssues } = trpc.issue.listByProject.useQuery(
+    {
+      projectId,
+      limit: 100,
+    },
+    {
+      refetchOnWindowFocus: true,
+      staleTime: 0,
+    },
+  );
 
   const assignees = allIssues
     ? Array.from(

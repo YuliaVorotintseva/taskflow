@@ -22,6 +22,7 @@ import { moveIssue } from "@/app/actions/issue";
 import { toast } from "../ui/use-toast";
 import { IssueCard } from "./issue-card";
 import { SortableColumn } from "./sortable-column";
+import { trpc } from "../providers";
 
 interface KanbanBoardProps {
   projectId: string;
@@ -59,6 +60,7 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const [activeIssue, setActiveIssue] = useState<Issue | null>(null);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const utils = trpc.useUtils();
 
   const [optimisticBoard, setOptimisticBoard] = useOptimistic<
     OptimisticBoard,
@@ -216,6 +218,9 @@ export function KanbanBoard({
         title: "Ошибка",
         description: result.error,
       });
+    } else {
+      await utils.issue.listByProject.invalidate({ projectId });
+      await utils.issue.getBoardData.invalidate({ projectId });
     }
   };
 

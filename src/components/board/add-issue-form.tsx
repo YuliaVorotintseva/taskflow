@@ -4,6 +4,7 @@ import { createIssue } from "@/app/actions/issue";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { trpc } from "../providers";
 
 export const AddIssueForm = ({
   projectId,
@@ -20,6 +21,7 @@ export const AddIssueForm = ({
 }) => {
   const [title, setTitle] = useState("");
   const [isPending, setIsPending] = useState(false);
+  const utils = trpc.useUtils();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +47,10 @@ export const AddIssueForm = ({
       toast({
         title: "Задача создана",
       });
+
+      await utils.issue.listByProject.invalidate({ projectId });
+      await utils.issue.getBoardData.invalidate({ projectId });
+
       onAdded();
     } else {
       toast({

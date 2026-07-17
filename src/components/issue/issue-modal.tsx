@@ -77,8 +77,12 @@ export const IssueModal = ({
 
     if (result.success) {
       toast({ title: "Задача обновлена" });
+
+      await utils.issue.listByProject.invalidate({
+        projectId: issue.projectId,
+      });
+      await utils.issue.getBoardData.invalidate({ projectId: issue.projectId });
       await utils.issue.getById.invalidate({ id: issue.id });
-      await utils.issue.getBoardData.invalidate();
     } else {
       toast({
         variant: "destructive",
@@ -97,8 +101,14 @@ export const IssueModal = ({
 
     if (result.success) {
       toast({ title: "Задача удалена" });
-      await utils.issue.getBoardData.invalidate();
-      router.back();
+
+      await utils.issue.listByProject.invalidate({
+        projectId: issue.projectId,
+      });
+      await utils.issue.getBoardData.invalidate({ projectId: issue.projectId });
+      await utils.issue.getById.invalidate({ id: issue.id });
+
+      router.push(`/${projectSlug}`);
     } else {
       toast({
         variant: "destructive",
