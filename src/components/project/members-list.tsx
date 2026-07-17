@@ -171,7 +171,7 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="z-[100]">
                       <DropdownMenuItem
                         onClick={() => updateRole(member.userId, "admin")}
                       >

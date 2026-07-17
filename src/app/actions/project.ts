@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { projects, columns } from "@/lib/db/schema";
+import { projects, columns, projectMembers } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 
 const createProjectSchema = z.object({
@@ -89,6 +89,13 @@ export async function createProject(
         description: description || null,
       })
       .returning();
+
+    await db.insert(projectMembers).values({
+      projectId: project.id,
+      userId: session.user.id,
+      role: "owner",
+      joinedAt: new Date(),
+    });
 
     const defaultColumns = ["Backlog", "Todo", "In Progress", "Done"];
     const columnData = defaultColumns.map((colName, index) => ({
