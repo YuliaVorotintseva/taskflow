@@ -1,36 +1,209 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskFlow — Project Management System
 
-## Getting Started
+### TaskFlow is a modern web application for project and task management using the Kanban methodology. It enables teams to organize work efficiently, track progress, and collaborate in real-time.
 
-First, run the development server:
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
+
+## Features
+
+### Project Management
+
+- Create and edit projects
+- Customizable columns (Backlog, Todo, In Progress, Done)
+- Drag-and-drop task movement between columns
+- Task filtering by priority, assignee, and search
+- Team Collaboration
+- Invite team members to projects
+- Flexible role system (Owner, Admin, Member, Viewer)
+- Assign tasks to team members
+
+### Tasks & Comments
+
+- Create tasks with Markdown-formatted descriptions
+- Priority levels (Low, Medium, High)
+- Nested comments on tasks
+- Mentions and discussions
+- Search & Analytics
+- Global search across projects and tasks (Ctrl+/)
+- Task statistics and metrics
+- Project activity feed
+- Modern light theme design
+- Responsive layout
+- Smooth animations and transitions
+
+## 🛠 Tech Stack
+
+### Frontend
+
+- **Next.js 14** — React framework with App Router
+- **TypeScript** — Type safety
+- **tRPC** — Type-safe API
+- **React Query** — Server state management
+- **Tailwind CSS** — Styling
+- **Radix UI** — Accessible primitives
+- **@dnd-kit** — Drag-and-drop functionality
+- **TipTap** — WYSIWYG editor
+- **next-auth** — Authentication
+- **nuqs** — URL state management
+
+### Backend
+
+- **PostgreSQL** — Database
+- **Drizzle ORM** — Type-safe ORM
+- **Next.js API Routes** — Server logic
+- **tRPC** — RPC framework
+
+### Tools
+
+- **pnpm** — Package manager
+- **ESLint + Prettier** — Linting and formatting
+
+## Installation
+
+### Requirements
+
+- Node.js 18+
+- Docker and Docker Compose
+- PostgreSQL 16+ (or Docker)
+- pnpm 9+
+
+## Installation Steps
+
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone git@github.com:YuliaVorotintseva/taskflow.git
+cd taskflow
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Set up environment variables:
 
-## Learn More
+```bash
+cp .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Start database:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev:up
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5. Initialize the database:
 
-## Deploy on Vercel
+```bash
+pnpm db:generate
+pnpm db:push
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. Run the application:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm dev
+# Open http://localhost:3000
+```
+
+## Usage
+
+### Creating a Project
+
+1. Go to Dashboard
+2. Click "+ Create Project"
+3. Enter project name and URL
+4. Click "Create"
+
+### Inviting Team Members
+
+1. Open a project
+2. Click "Members" → "Invite"
+3. Enter user's email
+4. Select role
+
+### Working with Tasks
+
+- **Create**: Click "+ Add Task" in the desired column
+- **Move**: Drag and drop tasks between columns
+- **Edit**: Click on a task to open the modal window
+- **Quick Edit**: Click on the task title for inline editing
+
+## Keyboard Shortcuts
+
+- **Ctrl+/** — Global search
+- **Ctrl+S** — Save task changes
+- **Esc** — Close modal
+
+## 🗂 Project Structure
+
+```bash
+taskflow/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (app)/             # Protected routes
+│   │   │   ├── dashboard/     # Dashboard
+│   │   │   ── [projectSlug]/ # Project page
+│   │   │       ├── @sidebar/  # Parallel route (sidebar)
+│   │   │       ├── @board/    # Parallel route (board)
+│   │   │       ├── @activity/ # Parallel route (activity)
+│   │   │       ── (.)issue/  # Intercepting route (modal)
+│   │   ├── (auth)/            # Authentication routes
+│   │   ├── api/               # API routes (tRPC, auth)
+│   │   └── layout.tsx         # Root layout
+│   │
+│   ├── components/            # React components
+│   │   ├── board/             # Kanban board components
+│   │   ├── issue/             # Task components
+│   │   ├── project/           # Project components
+│   │   ├── layout/            # Layout components
+│   │   └── ui/                # UI components (shadcn)
+│   │
+│   ├── lib/                   # Utilities and configs
+│   │   ├── db/                # Drizzle ORM schema
+│   │   ├── trpc/              # tRPC client and server
+│   │   └── utils.ts           # Common utilities
+│   │
+│   └── server/                # Server logic
+│       └── routers/           # tRPC routers
+│
+├── public/                    # Static files
+├── .env.example              # Environment variables example
+├── next.config.js            # Next.js configuration
+├── tailwind.config.ts        # Tailwind configuration
+└── tsconfig.json             # TypeScript configuration
+```
+
+## Screenshots
+
+## Key Implementation Features
+
+### Architecture
+
+- **Full-stack type safety** — From database to UI via tRPC and Drizzle
+- **Optimistic updates** — Instant UI feedback for drag-and-drop
+- **Parallel routes** — Independent section loading
+- **Intercepting routes** — Modals as full-fledged pages
+
+### Performance
+
+- **Server Components** — Minimal client-side JavaScript
+- **React Query caching** — Smart data invalidation
+- **Optimized queries** — Joins and selects via Drizzle
+
+### UX/UI
+
+- **Responsive design** — Works on mobile devices
+- **Accessibility** — ARIA labels and keyboard navigation
+- **Animations** — Smooth transitions via Tailwind
+
+## Author
+
+**Yulia Vorotintseva**
+
+- **GitHub**: @YuliaVorotintseva
+- **Email**: yulia.vorotintseva@gmail.com
