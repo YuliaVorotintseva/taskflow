@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { Send, Reply, Trash2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { ru } from "date-fns/locale";
+
 import { trpc } from "@/components/providers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Send, Reply, Edit2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { formatDistanceToNow } from "date-fns";
-import { ru } from "date-fns/locale";
+import { ConfirmDialog } from "../ui/confirm-dialog";
 
 interface CommentsSectionProps {
   issueId: string;
@@ -23,6 +25,7 @@ export function CommentsSection({
   const utils = trpc.useUtils();
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
   const { data: comments } = trpc.comment.getByIssue.useQuery({ issueId });
 
@@ -66,10 +69,11 @@ export function CommentsSection({
     });
   };
 
-  const handleDelete = async (commentId: string) => {
-    if (!confirm("Удалить комментарий?")) return;
+  const handleDelete = async () => {
+    if (!commentToDelete) return;
 
-    await deleteCommentMutation.mutateAsync({ commentId });
+    await deleteCommentMutation.mutateAsync({ commentId: commentToDelete });
+    setCommentToDelete(null);
   };
 
   return (
@@ -118,7 +122,8 @@ export function CommentsSection({
                         variant="ghost"
                         size="sm"
                         className="h-6 text-xs text-destructive"
-                        onClick={() => handleDelete(comment.id)}
+                        onClick={() => setCommentToDelete(comment.id)}
+                        disabled={deleteCommentMutation.isPending}
                       >
                         <Trash2 className="h-3 w-3 mr-1" />
                         Удалить
@@ -126,7 +131,6 @@ export function CommentsSection({
                     )}
                   </div>
 
-                  {/* Ответы */}
                   {comment.replies.length > 0 && (
                     <div className="mt-3 ml-4 space-y-2 border-l-2 pl-4">
                       {comment.replies.map((reply) => (
@@ -198,6 +202,16 @@ export function CommentsSection({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!commentToDelete}
+        onOpenChange={(open) => !open && setCommentToDelete(null)}
+        onConfirm={handleDelete}
+        title="Удалить комментарий?"
+        description="Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить."
+        confirmText="Удалить"
+        isLoading={deleteCommentMutation.isPending}
+      />
     </div>
   );
 }

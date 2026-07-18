@@ -16,6 +16,7 @@ import { ProjectEditModal } from "./edit-project-modal";
 import { deleteProject } from "@/app/actions/project";
 import { toast } from "@/components/ui/use-toast";
 import { trpc } from "@/components/providers";
+import { ConfirmDialog } from "../ui/confirm-dialog";
 
 interface ProjectCardProps {
   project: Project;
@@ -24,13 +25,10 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const utils = trpc.useUtils();
 
   const handleDelete = async () => {
-    if (!confirm(`Вы уверены, что хотите удалить проект "${project.name}"?`)) {
-      return;
-    }
-
     setIsDeleting(true);
 
     const result = await deleteProject(project.id);
@@ -40,6 +38,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
     if (result.success) {
       toast({ title: "Проект удалён" });
       await utils.project.getAll.invalidate();
+      setShowDeleteDialog(false);
     } else {
       toast({
         variant: "destructive",
@@ -76,7 +75,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                   Редактировать
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteDialog(true)}
                   className="text-destructive focus:text-destructive"
                   disabled={isDeleting}
                 >
@@ -96,6 +95,15 @@ export function ProjectCard({ project }: ProjectCardProps) {
           <div className="text-xs text-muted-foreground">/{project.slug}</div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        title="Удалить колонку?"
+        description={`Вы уверены, что хотите удалить проект "${project.name}"?`}
+        confirmText="Удалить"
+      />
 
       {isEditing && (
         <ProjectEditModal

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { MoreVertical, UserPlus, Crown, Shield, User, Eye } from "lucide-react";
+
 import { trpc } from "@/components/providers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,8 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, UserPlus, Crown, Shield, User, Eye } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { ConfirmDialog } from "../ui/confirm-dialog";
 
 interface MembersListProps {
   projectId: string;
@@ -39,6 +41,7 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
   const utils = trpc.useUtils();
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
 
   const { data: members } = trpc.member.getByProject.useQuery({ projectId });
 
@@ -107,10 +110,14 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
     await await updateRoleMutation.mutateAsync({ projectId, userId, role });
   };
 
-  const removeMember = async (userId: string) => {
-    if (!confirm("Вы уверены, что хотите удалить участника?")) return;
+  const removeMember = async () => {
+    if (!memberToRemove) return;
 
-    await await removeMemberMutation.mutateAsync({ projectId, userId });
+    await await removeMemberMutation.mutateAsync({
+      projectId,
+      userId: memberToRemove,
+    });
+    setMemberToRemove(null);
   };
 
   return (
@@ -188,7 +195,7 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
                         Сделать наблюдателем
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => removeMember(member.userId)}
+                        onClick={() => setMemberToRemove(member.userId)}
                         className="text-destructive"
                       >
                         Удалить из проекта
@@ -201,6 +208,16 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
           );
         })}
       </div>
+
+      <ConfirmDialog
+        open={!!memberToRemove}
+        onOpenChange={(open) => !open && setMemberToRemove(null)}
+        onConfirm={removeMember}
+        title="Удалить участника?"
+        description="Вы уверены, что хотите удалить этого участника из проекта? Он потеряет доступ ко всем задачам."
+        confirmText="Удалить"
+        isLoading={removeMemberMutation.isPending}
+      />
     </div>
   );
 }

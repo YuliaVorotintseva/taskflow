@@ -17,6 +17,7 @@ import { toast } from "../ui/use-toast";
 import { deleteColumn, updateColumn } from "@/app/actions/column";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { Input } from "../ui/input";
+import { ConfirmDialog } from "../ui/confirm-dialog";
 
 interface SortableColumnProps {
   column: Column & { issues: Issue[] };
@@ -33,6 +34,7 @@ export function SortableColumn({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(column.name);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
@@ -94,14 +96,11 @@ export function SortableColumn({
       return;
     }
 
-    if (!confirm(`Вы уверены, что хотите удалить колонку "${column.name}"?`)) {
-      return;
-    }
-
     const result = await deleteColumn(column.id, projectSlug);
 
     if (result.success) {
       toast({ title: "Колонка удалена" });
+      setShowDeleteDialog(false);
     } else {
       toast({
         variant: "destructive",
@@ -203,7 +202,7 @@ export function SortableColumn({
                     className="h-6 w-6 text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteColumn();
+                      setShowDeleteDialog(false);
                     }}
                     title="Удалить колонку"
                     disabled={column.issues.length > 0}
@@ -253,6 +252,15 @@ export function SortableColumn({
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDeleteColumn}
+        title="Удалить колонку?"
+        description={`Вы уверены, что хотите удалить колонку "${column.name}"?`}
+        confirmText="Удалить"
+      />
     </div>
   );
 }

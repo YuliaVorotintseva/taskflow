@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { MembersList } from "./members-list";
+import { ConfirmDialog } from "../ui/confirm-dialog";
 
 interface ProjectHeaderProps {
   project: Project;
@@ -30,17 +31,9 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        `Вы уверены, что хотите удалить проект "${project.name}"? 
-      Все задачи и колонки будут удалены без возможности восстановления.`,
-      )
-    ) {
-      return;
-    }
-
     setIsDeleting(true);
 
     const result = await deleteProject(project.id);
@@ -51,6 +44,7 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
       toast({ title: "Проект удалён" });
       await utils.project.getAll.invalidate();
       router.replace("/dashboard");
+      setShowDeleteDialog(false);
     } else {
       toast({
         variant: "destructive",
@@ -105,7 +99,7 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteDialog(true)}
               disabled={isDeleting}
               className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
             >
@@ -115,6 +109,16 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+        title="Удалить проект?"
+        description={`Вы уверены, что хотите удалить проект "${project.name}"? Все задачи, колонки и данные будут удалены без возможности восстановления.`}
+        confirmText="Удалить проект"
+        isLoading={isDeleting}
+      />
 
       {isEditing && (
         <ProjectEditModal

@@ -13,6 +13,7 @@ import { updateIssue, deleteIssue } from "@/app/actions/issue";
 import { toast } from "@/components/ui/use-toast";
 import { trpc } from "@/components/providers";
 import { CommentsSection } from "./comments-section";
+import { ConfirmDialog } from "../ui/confirm-dialog";
 
 interface IssueModalProps {
   issue: Issue;
@@ -34,6 +35,7 @@ export const IssueModal = ({
     issue.metadata?.priority || null,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const isDirty = useMemo(() => {
     return (
@@ -93,10 +95,6 @@ export const IssueModal = ({
   };
 
   const handleDelete = async () => {
-    if (!confirm("Вы уверены, что хотите удалить задачу?")) {
-      return;
-    }
-
     const result = await deleteIssue(issue.id, projectSlug);
 
     if (result.success) {
@@ -105,9 +103,14 @@ export const IssueModal = ({
       await utils.issue.listByProject.invalidate({
         projectId: issue.projectId,
       });
+
+      await utils.issue.listByProject.invalidate({
+        projectId: issue.projectId,
+      });
       await utils.issue.getBoardData.invalidate({ projectId: issue.projectId });
       await utils.issue.getById.invalidate({ id: issue.id });
 
+      setShowDeleteDialog(false);
       router.push(`/${projectSlug}`);
     } else {
       toast({
@@ -151,7 +154,11 @@ export const IssueModal = ({
                   {isSaving ? "Сохранение..." : "Сохранить"}
                 </Button>
               )}
-              <Button size="sm" variant="destructive" onClick={handleDelete}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
                 Удалить
               </Button>
             </div>
@@ -203,6 +210,16 @@ export const IssueModal = ({
         <div className="border-t pt-4 mt-4">
           <CommentsSection issueId={issue.id} currentUserId={currentUserId} />
         </div>
+
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={handleDelete}
+          title="Удалить задачу?"
+          description={`Вы уверены, что хотите удалить задачу "${issue.title}"? Это действие нельзя отменить.`}
+          confirmText="Удалить"
+          isLoading={isSaving}
+        />
       </DialogContent>
     </Dialog>
   );
