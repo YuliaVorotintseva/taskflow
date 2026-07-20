@@ -29,8 +29,8 @@ export function ConfirmDialog({
   onConfirm,
   title,
   description,
-  confirmText = "Подтвердить",
-  cancelText = "Отмена",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
   variant = "destructive",
   isLoading = false,
 }: ConfirmDialogProps) {
@@ -59,7 +59,7 @@ export function ConfirmDialog({
             }
             disabled={isLoading}
           >
-            {isLoading ? "Выполнение..." : confirmText}
+            {isLoading ? "Execution..." : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

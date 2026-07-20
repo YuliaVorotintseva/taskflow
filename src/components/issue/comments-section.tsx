@@ -31,7 +31,7 @@ export function CommentsSection({
 
   const createCommentMutation = trpc.comment.create.useMutation({
     onSuccess: async () => {
-      toast({ title: "Комментарий добавлен" });
+      toast({ title: "Comment added" });
       setContent("");
       setReplyTo(null);
       await utils.comment.getByIssue.invalidate({ issueId });
@@ -39,22 +39,22 @@ export function CommentsSection({
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось добавить комментарий",
+        title: "Error",
+        description: error.message || "Failed to add comment",
       });
     },
   });
 
   const deleteCommentMutation = trpc.comment.delete.useMutation({
     onSuccess: async () => {
-      toast({ title: "Комментарий удалён" });
+      toast({ title: "Comment deleted" });
       await utils.comment.getByIssue.invalidate({ issueId });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось удалить комментарий",
+        title: "Error",
+        description: error.message || "Failed to delete comment",
       });
     },
   });
@@ -78,7 +78,7 @@ export function CommentsSection({
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold">Комментарии ({comments?.length || 0})</h3>
+      <h3 className="font-semibold">Comments ({comments?.length || 0})</h3>
 
       <div className="space-y-3">
         {comments?.map((comment) => (
@@ -94,7 +94,7 @@ export function CommentsSection({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm">
-                      {comment.user.name || "Аноним"}
+                      {comment.user.name || "Unknown"}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(comment.createdAt), {
@@ -115,7 +115,7 @@ export function CommentsSection({
                       onClick={() => setReplyTo(comment.id)}
                     >
                       <Reply className="h-3 w-3 mr-1" />
-                      Ответить
+                      Answer
                     </Button>
                     {comment.userId === currentUserId && (
                       <Button
@@ -126,7 +126,7 @@ export function CommentsSection({
                         disabled={deleteCommentMutation.isPending}
                       >
                         <Trash2 className="h-3 w-3 mr-1" />
-                        Удалить
+                        Delete
                       </Button>
                     )}
                   </div>
@@ -144,7 +144,7 @@ export function CommentsSection({
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-xs">
-                                {reply.user.name || "Аноним"}
+                                {reply.user.name || "Unknown"}
                               </span>
                               <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(
@@ -168,16 +168,13 @@ export function CommentsSection({
         ))}
       </div>
 
-      {/* Форма добавления комментария */}
       <div className="flex gap-2">
         <Avatar className="h-8 w-8">
-          <AvatarFallback>Вы</AvatarFallback>
+          <AvatarFallback>You</AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <Textarea
-            placeholder={
-              replyTo ? "Написать ответ..." : "Написать комментарий..."
-            }
+            placeholder={replyTo ? "Write a reply..." : "Write a comment..."}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="min-h-[80px]"
@@ -189,7 +186,7 @@ export function CommentsSection({
                 size="sm"
                 onClick={() => setReplyTo(null)}
               >
-                Отмена ответа
+                Cancel the answer
               </Button>
             )}
             <Button
@@ -197,7 +194,7 @@ export function CommentsSection({
               disabled={createCommentMutation.isPending || !content.trim()}
             >
               <Send className="h-4 w-4 mr-2" />
-              {createCommentMutation.isPending ? "Отправка..." : "Отправить"}
+              {createCommentMutation.isPending ? "..." : "Send"}
             </Button>
           </div>
         </div>
@@ -207,9 +204,9 @@ export function CommentsSection({
         open={!!commentToDelete}
         onOpenChange={(open) => !open && setCommentToDelete(null)}
         onConfirm={handleDelete}
-        title="Удалить комментарий?"
-        description="Вы уверены, что хотите удалить этот комментарий? Это действие нельзя отменить."
-        confirmText="Удалить"
+        title="Delete the comment?"
+        description="Are you sure you want to delete this comment? This action cannot be undone"
+        confirmText="Delete"
         isLoading={deleteCommentMutation.isPending}
       />
     </div>

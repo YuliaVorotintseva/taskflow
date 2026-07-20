@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+
 import type { Project } from "@/lib/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,14 +37,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
     setIsDeleting(false);
 
     if (result.success) {
-      toast({ title: "Проект удалён" });
+      toast({ title: "Project deleted" });
       await utils.project.getAll.invalidate();
       setShowDeleteDialog(false);
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error || "Произошла ошибка",
+        title: "Error",
+        description:
+          (result as { success: boolean; error: string }).error ||
+          "The error occurred",
       });
     }
   };
@@ -72,7 +75,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setIsEditing(true)}>
                   <Pencil className="h-4 w-4 mr-2" />
-                  Редактировать
+                  Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setShowDeleteDialog(true)}
@@ -80,7 +83,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                   disabled={isDeleting}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  {isDeleting ? "Удаление..." : "Удалить"}
+                  {isDeleting ? "..." : "Delete"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -100,9 +103,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onConfirm={handleDelete}
-        title="Удалить колонку?"
-        description={`Вы уверены, что хотите удалить проект "${project.name}"?`}
-        confirmText="Удалить"
+        title="Delete the column?"
+        description={`Are you sure you want to delete the project "${project.name}"?`}
+        confirmText="Delete"
       />
 
       {isEditing && (

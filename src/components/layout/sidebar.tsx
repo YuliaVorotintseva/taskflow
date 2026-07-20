@@ -48,7 +48,7 @@ export function Sidebar() {
           )}
         >
           <LayoutDashboard className="h-4 w-4" />
-          Дашборд
+          Dashboard
         </Link>
 
         {projects && projects.length > 0 && (
@@ -56,7 +56,7 @@ export function Sidebar() {
             <div className="pt-4 pb-2 px-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 <FolderKanban className="h-3 w-3" />
-                Проекты
+                Projects
               </div>
             </div>
             {projects.map((project) => (

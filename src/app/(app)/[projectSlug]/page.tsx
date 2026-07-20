@@ -18,7 +18,7 @@ export default async function ProjectPage({
   const project = await trpcApi.project.getBySlug({ slug: projectSlug });
 
   if (!project) {
-    return <div>Проект не найден</div>;
+    return <div>Project not found</div>;
   }
 
   return null;

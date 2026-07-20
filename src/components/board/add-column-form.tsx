@@ -39,12 +39,12 @@ export const AddColumnForm = ({
       setName("");
       setIsAdding(false);
       toast({
-        title: "Колонка создана",
+        title: "The column is created",
       });
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
+        title: "Error",
         description: result.error,
       });
     }
@@ -60,7 +60,7 @@ export const AddColumnForm = ({
               className="w-full justify-start text-muted-foreground"
               onClick={() => setIsAdding(true)}
             >
-              + Добавить колонку
+              + Add new column
             </Button>
           </CardContent>
         </Card>
@@ -74,7 +74,7 @@ export const AddColumnForm = ({
         <CardContent className="p-4">
           <form onSubmit={handleSubmit} className="space-y-2">
             <Input
-              placeholder="Название колонки..."
+              placeholder="Title..."
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isPending}
@@ -82,7 +82,7 @@ export const AddColumnForm = ({
             />
             <div className="flex gap-2">
               <Button type="submit" size="sm" disabled={isPending}>
-                {isPending ? "Создание..." : "Создать"}
+                {isPending ? "..." : "Create"}
               </Button>
               <Button
                 type="button"
@@ -94,7 +94,7 @@ export const AddColumnForm = ({
                 }}
                 disabled={isPending}
               >
-                Отмена
+                Cancel
               </Button>
             </div>
           </form>

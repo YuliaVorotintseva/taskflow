@@ -49,23 +49,23 @@ export function SidebarFilters({ projectId }: SidebarFiltersProps) {
     filters.search || filters.priority || filters.assigneeId;
 
   const priorityLabels = {
-    low: "Низкий",
-    medium: "Средний",
-    high: "Высокий",
+    low: "low",
+    medium: "medium",
+    high: "hight",
   };
 
   return (
     <div className="w-64 border-r p-4 flex-shrink-0 overflow-y-auto h-full">
       <div className="space-y-6">
         <div>
-          <h3 className="font-semibold mb-3">Фильтры</h3>
+          <h3 className="font-semibold mb-3">Filters</h3>
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="search">Поиск</Label>
+              <Label htmlFor="search">Search</Label>
               <Input
                 id="search"
-                placeholder="Название задачи..."
+                placeholder="Issue title..."
                 value={filters.search}
                 onChange={(e) => setFilters({ search: e.target.value || null })}
                 className="mt-1"
@@ -73,7 +73,7 @@ export function SidebarFilters({ projectId }: SidebarFiltersProps) {
             </div>
 
             <div>
-              <Label>Приоритет</Label>
+              <Label>Priority</Label>
               <div className="space-y-2 mt-2">
                 {(["low", "medium", "high"] as const).map((p) => (
                   <Button
@@ -95,7 +95,7 @@ export function SidebarFilters({ projectId }: SidebarFiltersProps) {
 
             {assignees.length > 0 && (
               <div>
-                <Label>Исполнитель</Label>
+                <Label>Assignee</Label>
                 <div className="space-y-2 mt-2">
                   {assignees.map((assignee) => (
                     <Button
@@ -136,19 +136,19 @@ export function SidebarFilters({ projectId }: SidebarFiltersProps) {
                 }
                 className="w-full"
               >
-                Сбросить фильтры
+                Reset filters
               </Button>
             )}
           </div>
         </div>
 
         <div className="pt-4 border-t">
-          <h3 className="font-semibold mb-2 text-sm">Статистика</h3>
+          <h3 className="font-semibold mb-2 text-sm">Statistics</h3>
           <div className="text-sm text-muted-foreground space-y-1">
-            <div>Всего задач: {allIssues?.length || 0}</div>
+            <div>Summary: {allIssues?.length || 0}</div>
             {filters.priority && (
               <div>
-                С фильтром:{" "}
+                With filter:{" "}
                 {allIssues?.filter(
                   (i) => i.metadata?.priority === filters.priority,
                 ).length || 0}

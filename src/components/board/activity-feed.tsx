@@ -13,24 +13,24 @@ export async function ActivityFeed({ projectId }: ActivityFeedProps) {
   const activities = await data.activity.getByProject({ projectId });
 
   const actionLabels: Record<string, string> = {
-    created: "создал(а)",
-    updated: "обновил(а)",
-    deleted: "удалил(а)",
-    moved: "переместил(а)",
+    created: "created",
+    updated: "updated",
+    deleted: "deleted",
+    moved: "moved",
   };
 
   const entityLabels: Record<string, string> = {
-    issue: "задачу",
-    column: "колонку",
-    project: "проект",
+    issue: "issue",
+    column: "column",
+    project: "project",
   };
 
   if (activities.length === 0) {
     return (
       <div className="w-80 border-l p-4">
-        <h3 className="font-semibold mb-4">Активность</h3>
+        <h3 className="font-semibold mb-4">Activity</h3>
         <p className="text-sm text-muted-foreground">
-          Пока нет активности в проекте
+          There is no activity in the project yet
         </p>
       </div>
     );
@@ -38,14 +38,14 @@ export async function ActivityFeed({ projectId }: ActivityFeedProps) {
 
   return (
     <div className="w-80 border-l p-4 flex-shrink-0 overflow-y-auto h-full">
-      <h3 className="font-semibold mb-4">Активность</h3>
+      <h3 className="font-semibold mb-4">Activity</h3>
       <div className="space-y-3">
         {activities.map((activity) => (
           <Card key={activity.id}>
             <CardContent className="p-3">
               <p className="text-sm">
                 <span className="font-medium">
-                  {activity.user?.name || "Пользователь"}
+                  {activity.user?.name || "User"}
                 </span>{" "}
                 {actionLabels[activity.action] || activity.action}{" "}
                 {entityLabels[activity.entityType] || activity.entityType}

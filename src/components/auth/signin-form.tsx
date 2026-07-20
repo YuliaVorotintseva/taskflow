@@ -21,8 +21,8 @@ import { signin } from "@/app/actions/auth";
 import { toast } from "@/components/ui/use-toast";
 
 const signinSchema = z.object({
-  email: z.string().email("Некорректный email"),
-  password: z.string().min(1, "Введите пароль"),
+  email: z.string().email("Incorrect email"),
+  password: z.string().min(1, "Enter your password"),
 });
 
 type SigninFormValues = z.infer<typeof signinSchema>;
@@ -51,8 +51,8 @@ export function SigninForm() {
 
       if (result.success) {
         toast({
-          title: "Успешный вход",
-          description: "Добро пожаловать!",
+          title: "Successful login",
+          description: "Welcome!",
         });
 
         router.push(callbackUrl);
@@ -64,8 +64,8 @@ export function SigninForm() {
       } else {
         toast({
           variant: "destructive",
-          title: "Ошибка входа",
-          description: result.error || "Произошла ошибка",
+          title: "Login error",
+          description: result.error || "An error occurred",
         });
       }
     });
@@ -97,7 +97,7 @@ export function SigninForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Пароль</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input
                   placeholder="••••••••"
@@ -111,12 +111,12 @@ export function SigninForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? "Вход..." : "Войти"}
+          {isPending ? "..." : "Log in"}
         </Button>
         <div className="text-center text-sm">
-          Нет аккаунта?{" "}
+          Do not have an account?{" "}
           <Link href="/auth/signup" className="underline hover:text-primary">
-            Зарегистрироваться
+            Register
           </Link>
         </div>
       </form>

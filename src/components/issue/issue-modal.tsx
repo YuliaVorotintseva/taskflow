@@ -55,8 +55,8 @@ export const IssueModal = ({
     if (!title.trim()) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: "Название не может быть пустым",
+        title: "Error",
+        description: "Title is required",
       });
       return;
     }
@@ -78,7 +78,7 @@ export const IssueModal = ({
     setIsSaving(false);
 
     if (result.success) {
-      toast({ title: "Задача обновлена" });
+      toast({ title: "Issue updated" });
 
       await utils.issue.listByProject.invalidate({
         projectId: issue.projectId,
@@ -88,8 +88,8 @@ export const IssueModal = ({
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error,
+        title: "Error",
+        description: (result as { success: boolean; error: string }).error,
       });
     }
   };
@@ -98,7 +98,7 @@ export const IssueModal = ({
     const result = await deleteIssue(issue.id, projectSlug);
 
     if (result.success) {
-      toast({ title: "Задача удалена" });
+      toast({ title: "Issue deleted" });
 
       await utils.issue.listByProject.invalidate({
         projectId: issue.projectId,
@@ -115,8 +115,8 @@ export const IssueModal = ({
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error,
+        title: "Error",
+        description: (result as { success: boolean; error: string }).error,
       });
     }
   };
@@ -145,13 +145,13 @@ export const IssueModal = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="text-xl font-semibold border-none shadow-none focus-visible:ring-0 px-0"
-                placeholder="Название задачи"
+                placeholder="Title"
               />
             </div>
             <div className="flex gap-2 ml-4">
               {isDirty && (
                 <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                  {isSaving ? "Сохранение..." : "Сохранить"}
+                  {isSaving ? "..." : "Save"}
                 </Button>
               )}
               <Button
@@ -159,7 +159,7 @@ export const IssueModal = ({
                 variant="destructive"
                 onClick={() => setShowDeleteDialog(true)}
               >
-                Удалить
+                Delete
               </Button>
             </div>
           </div>
@@ -167,7 +167,7 @@ export const IssueModal = ({
 
         <div className="space-y-6 mt-4">
           <div>
-            <Label className="text-sm font-medium mb-2 block">Приоритет</Label>
+            <Label className="text-sm font-medium mb-2 block">Priority</Label>
             <div className="flex gap-2">
               {(["low", "medium", "high"] as const).map((p) => (
                 <Button
@@ -176,33 +176,33 @@ export const IssueModal = ({
                   size="sm"
                   onClick={() => setPriority(priority === p ? null : p)}
                 >
-                  {p === "low" && "Низкий"}
-                  {p === "medium" && "Средний"}
-                  {p === "high" && "Высокий"}
+                  {p}
                 </Button>
               ))}
             </div>
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-2 block">Описание</Label>
+            <Label className="text-sm font-medium mb-2 block">
+              Description
+            </Label>
             <MarkdownEditor
               content={description}
               onChange={setDescription}
-              placeholder="Добавьте описание задачи..."
+              placeholder="Add description..."
             />
           </div>
 
           <div className="text-xs text-muted-foreground pt-4 border-t">
             <div>
-              Создано: {new Date(issue.createdAt).toLocaleString("ru-RU")}
+              Created: {new Date(issue.createdAt).toLocaleString("ru-RU")}
             </div>
             <div>
-              Обновлено: {new Date(issue.updatedAt).toLocaleString("ru-RU")}
+              Updated: {new Date(issue.updatedAt).toLocaleString("ru-RU")}
             </div>
             {isDirty && (
               <div className="text-amber-600 mt-1">
-                ⚠ Есть несохранённые изменения (Cmd+S для сохранения)
+                ⚠ There are unsaved changes (Cmd+S to save)
               </div>
             )}
           </div>
@@ -215,9 +215,9 @@ export const IssueModal = ({
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
           onConfirm={handleDelete}
-          title="Удалить задачу?"
-          description={`Вы уверены, что хотите удалить задачу "${issue.title}"? Это действие нельзя отменить.`}
-          confirmText="Удалить"
+          title="Delete issue?"
+          description={`Are you sure you want to delete issue ${issue.title}? This action cannot be undone.`}
+          confirmText="Delete"
           isLoading={isSaving}
         />
       </DialogContent>

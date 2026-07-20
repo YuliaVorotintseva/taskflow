@@ -69,14 +69,14 @@ export function CommandPalette() {
             <Command.Input
               value={search}
               onValueChange={setSearch}
-              placeholder="Поиск проектов, задач..."
+              placeholder="Search..."
               className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
           <Command.List className="max-h-[300px] overflow-y-auto p-2">
             <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
-              Ничего не найдено
+              Nothing found
             </Command.Empty>
 
             <Command.Group heading="Проекты" className="py-1">
@@ -95,13 +95,13 @@ export function CommandPalette() {
               ))}
             </Command.Group>
 
-            <Command.Group heading="Навигация" className="py-1">
+            <Command.Group heading="Navigation" className="py-1">
               <Command.Item
                 value="dashboard"
                 onSelect={() => handleSelect("/dashboard")}
                 className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent"
               >
-                Дашборд
+                Dashboard
               </Command.Item>
             </Command.Group>
           </Command.List>

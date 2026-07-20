@@ -38,8 +38,8 @@ export function CreateProjectForm() {
     if (!name.trim() || !slug.trim()) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: "Заполните обязательные поля",
+        title: "Error",
+        description: "Name and slug are required",
       });
       return;
     }
@@ -57,8 +57,8 @@ export function CreateProjectForm() {
 
     if (result.success && result.projectSlug) {
       toast({
-        title: "Проект создан",
-        description: "Перенаправляем на страницу проекта...",
+        title: "Project created",
+        description: "Redirect to the project page...",
       });
 
       await utils.project.getAll.invalidate();
@@ -67,8 +67,8 @@ export function CreateProjectForm() {
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error || "Произошла ошибка",
+        title: "Error",
+        description: result.error || "The error occurred",
       });
     }
   };
@@ -81,7 +81,7 @@ export function CreateProjectForm() {
       >
         <CardContent className="p-8 text-center">
           <div className="text-4xl mb-2">+</div>
-          <div className="text-muted-foreground">Создать новый проект</div>
+          <div className="text-muted-foreground">Create new project</div>
         </CardContent>
       </Card>
     );
@@ -90,15 +90,15 @@ export function CreateProjectForm() {
   return (
     <Card className="md:col-span-2 lg:col-span-3">
       <CardHeader>
-        <CardTitle>Новый проект</CardTitle>
+        <CardTitle>New Project</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="name">Название *</Label>
+            <Label htmlFor="name">Name *</Label>
             <Input
               id="name"
-              placeholder="Мой проект"
+              placeholder="Project name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               disabled={isPending}
@@ -119,15 +119,15 @@ export function CreateProjectForm() {
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Только латинские буквы, цифры и дефис
+              Only latin letters, numbers and hyphens
             </p>
           </div>
 
           <div>
-            <Label htmlFor="description">Описание</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
               id="description"
-              placeholder="Краткое описание проекта"
+              placeholder="Project description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isPending}
@@ -136,7 +136,7 @@ export function CreateProjectForm() {
 
           <div className="flex gap-2">
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Создание..." : "Создать проект"}
+              {isPending ? "..." : "Create"}
             </Button>
             <Button
               type="button"
@@ -149,7 +149,7 @@ export function CreateProjectForm() {
               }}
               disabled={isPending}
             >
-              Отмена
+              Cancel
             </Button>
           </div>
         </form>

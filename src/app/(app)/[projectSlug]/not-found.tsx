@@ -13,12 +13,12 @@ export default function ProjectNotFound() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Проект, который вы ищете, не существует или у вас нет к нему
-            доступа.
+            The project you are looking for does not exist or you do not have
+            access to it.
           </p>
           <div className="flex gap-2">
             <Link href="/dashboard" className={cn(buttonVariants.default)}>
-              Вернуться на дашборд
+              Return to dashboard
             </Link>
           </div>
         </CardContent>

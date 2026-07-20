@@ -14,13 +14,13 @@ export default function BoardError({
     <div className="flex-1 flex items-center justify-center p-4">
       <Card className="max-w-md">
         <CardHeader>
-          <CardTitle>Ошибка загрузки доски</CardTitle>
+          <CardTitle>Board loading error</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             {error.message || "Произошла непредвиденная ошибка"}
           </p>
-          <Button onClick={reset}>Попробовать снова</Button>
+          <Button onClick={reset}>Try again</Button>
         </CardContent>
       </Card>
     </div>

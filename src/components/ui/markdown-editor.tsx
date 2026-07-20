@@ -38,7 +38,7 @@ const ToolbarButton = ({
 export const MarkdownEditor = ({
   content,
   onChange,
-  placeholder = "Описание задачи...",
+  placeholder = "Issue description...",
   className,
 }: MarkdownEditorProps) => {
   const editor = useEditor({

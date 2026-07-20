@@ -1,23 +1,41 @@
 "use server";
 
 import { z } from "zod";
+import { AuthError } from "next-auth";
+
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/auth-utils";
 import { signIn } from "@/lib/auth";
-import { AuthError } from "next-auth";
 
 const signupSchema = z.object({
-  name: z.string().min(2, "Имя должно содержать минимум 2 символа"),
-  email: z.string().email("Некорректный email"),
-  password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
+  name: z.string().min(2, "The name must contain at least 2 characters"),
+  email: z.string().email("Incorrect email"),
+  password: z
+    .string()
+    .min(6, "The password must contain at least 6 characters"),
 });
 
 const signinSchema = z.object({
-  email: z.string().email("Некорректный email"),
-  password: z.string().min(1, "Введите пароль"),
+  email: z.string().email("Incollect email"),
+  password: z.string().min(1, "Enter your password"),
 });
+
+const registerError = {
+  success: false,
+  error: "An error occurred while registering",
+};
+
+const existingEmailError = {
+  success: false,
+  error: "A user with this email already exists",
+};
+
+const incorrectEmailOrPasswordError = {
+  success: false,
+  error: "Incorrect email or password",
+};
 
 export type SignupResult = {
   success: boolean;
@@ -55,10 +73,7 @@ export async function signup(formData: FormData): Promise<SignupResult> {
       .limit(1);
 
     if (existingUser && existingUser.length > 0) {
-      return {
-        success: false,
-        error: "Пользователь с таким email уже существует",
-      };
+      return existingEmailError;
     }
 
     const hashedPassword = await hashPassword(password);
@@ -78,7 +93,7 @@ export async function signup(formData: FormData): Promise<SignupResult> {
     if (result?.error) {
       return {
         success: false,
-        error: "Ошибка автоматического входа. Пожалуйста, войдите вручную.",
+        error: "Automatic login error. Please log in manually",
       };
     }
 
@@ -87,16 +102,10 @@ export async function signup(formData: FormData): Promise<SignupResult> {
     console.error("Signup error:", error);
 
     if (error instanceof Error && error.message.includes("unique")) {
-      return {
-        success: false,
-        error: "Пользователь с таким email уже существует",
-      };
+      return existingEmailError;
     }
 
-    return {
-      success: false,
-      error: "Произошла ошибка при регистрации",
-    };
+    return registerError;
   }
 }
 
@@ -123,10 +132,7 @@ export async function signin(formData: FormData): Promise<SigninResult> {
     });
 
     if (result?.error) {
-      return {
-        success: false,
-        error: "Неверный email или пароль",
-      };
+      return incorrectEmailOrPasswordError;
     }
 
     return { success: true };
@@ -136,21 +142,12 @@ export async function signin(formData: FormData): Promise<SigninResult> {
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
-          return {
-            success: false,
-            error: "Неверный email или пароль",
-          };
+          return incorrectEmailOrPasswordError;
         default:
-          return {
-            success: false,
-            error: "Произошла ошибка при входе",
-          };
+          return registerError;
       }
     }
 
-    return {
-      success: false,
-      error: "Произошла ошибка при входе",
-    };
+    return registerError;
   }
 }

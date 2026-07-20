@@ -62,7 +62,7 @@ export function NotificationsDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between p-2 border-b">
-          <span className="font-semibold">Уведомления</span>
+          <span className="font-semibold">Notifications</span>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -71,7 +71,7 @@ export function NotificationsDropdown() {
               onClick={markAllAsRead}
             >
               <CheckCheck className="h-3 w-3 mr-1" />
-              Прочитать все
+              Read all
             </Button>
           )}
         </div>
@@ -79,7 +79,7 @@ export function NotificationsDropdown() {
         <div className="max-h-96 overflow-y-auto">
           {allNotifications?.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              Нет уведомлений
+              No notifications
             </div>
           ) : (
             allNotifications?.map((notification) => (

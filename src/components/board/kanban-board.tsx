@@ -216,7 +216,7 @@ export function KanbanBoard({
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: result.error,
+        description: (result as { success: boolean; error: string }).error,
       });
     } else {
       await utils.issue.listByProject.invalidate({ projectId });

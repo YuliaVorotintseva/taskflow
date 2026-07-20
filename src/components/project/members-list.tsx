@@ -24,14 +24,18 @@ interface MembersListProps {
 
 const roleLabels = {
   owner: {
-    label: "Владелец",
+    label: "Owner",
     icon: Crown,
     color: "bg-yellow-100 text-yellow-800",
   },
-  admin: { label: "Админ", icon: Shield, color: "bg-blue-100 text-blue-800" },
-  member: { label: "Участник", icon: User, color: "bg-gray-100 text-gray-800" },
+  admin: { label: "Admin", icon: Shield, color: "bg-blue-100 text-blue-800" },
+  member: {
+    label: "Participant",
+    icon: User,
+    color: "bg-gray-100 text-gray-800",
+  },
   viewer: {
-    label: "Наблюдатель",
+    label: "Viewer",
     icon: Eye,
     color: "bg-green-100 text-green-800",
   },
@@ -47,43 +51,45 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
 
   const inviteMutation = trpc.member.invite.useMutation({
     onSuccess: async () => {
-      toast({ title: "Участник приглашён" });
+      toast({ title: "Participant invited" });
       setInviteEmail("");
       await utils.member.getByProject.invalidate({ projectId });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось пригласить участника",
+        title: "Error",
+        description: error.message || "Failed to invite participant",
       });
     },
   });
 
   const updateRoleMutation = trpc.member.updateRole.useMutation({
     onSuccess: async () => {
-      toast({ title: "Роль обновлена" });
+      toast({ title: "Role updated" });
       await utils.member.getByProject.invalidate({ projectId });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось обновить роль",
+        title: "Error",
+        description:
+          error.message || "The error occurred while updating the role",
       });
     },
   });
 
   const removeMemberMutation = trpc.member.remove.useMutation({
     onSuccess: async () => {
-      toast({ title: "Участник удалён" });
+      toast({ title: "Participant deleted" });
       await utils.member.getByProject.invalidate({ projectId });
     },
     onError: (error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось удалить участника",
+        title: "Error",
+        description:
+          error.message || "The error occurred while deleting participant",
       });
     },
   });
@@ -124,7 +130,7 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
     <div className="space-y-4">
       <div className="flex gap-2">
         <Input
-          placeholder="Email участника"
+          placeholder="Participant email"
           value={inviteEmail}
           onChange={(e) => setInviteEmail(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && inviteMember()}
@@ -134,7 +140,7 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
           disabled={isInviting || !inviteEmail.trim()}
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          Пригласить
+          Invite
         </Button>
       </div>
 
@@ -157,7 +163,7 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
                 </Avatar>
                 <div>
                   <div className="font-medium text-sm">
-                    {member.user.name || "Без имени"}
+                    {member.user.name || "Unknown"}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {member.user.email}
@@ -182,23 +188,23 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
                       <DropdownMenuItem
                         onClick={() => updateRole(member.userId, "admin")}
                       >
-                        Сделать администратором
+                        Make as administrator
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => updateRole(member.userId, "member")}
                       >
-                        Сделать участником
+                        Make as participant
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => updateRole(member.userId, "viewer")}
                       >
-                        Сделать наблюдателем
+                        Make as viewer
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setMemberToRemove(member.userId)}
                         className="text-destructive"
                       >
-                        Удалить из проекта
+                        Remove from project
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -213,9 +219,9 @@ export function MembersList({ projectId, currentUserId }: MembersListProps) {
         open={!!memberToRemove}
         onOpenChange={(open) => !open && setMemberToRemove(null)}
         onConfirm={removeMember}
-        title="Удалить участника?"
-        description="Вы уверены, что хотите удалить этого участника из проекта? Он потеряет доступ ко всем задачам."
-        confirmText="Удалить"
+        title="Remove participant from project?"
+        description="Are you sure you want to remove this member from the project? They will lose access to all tasks"
+        confirmText="Delete"
         isLoading={removeMemberMutation.isPending}
       />
     </div>

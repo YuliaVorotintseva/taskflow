@@ -10,7 +10,7 @@ import { auth } from "@/lib/auth";
 
 const createColumnSchema = z.object({
   projectId: z.string().uuid(),
-  name: z.string().min(1, "Название обязательно").max(50),
+  name: z.string().min(1, "Title is required").max(50),
   projectSlug: z.string(),
 });
 
@@ -18,14 +18,19 @@ const updateColumnSchema = z.object({
   columnId: z.string().uuid(),
   projectId: z.string().uuid(),
   projectSlug: z.string(),
-  name: z.string().min(1, "Название обязательно").max(50),
+  name: z.string().min(1, "Title is required").max(50),
 });
+
+const authorizationRequiredError = {
+  success: false,
+  error: "Authorization required",
+};
 
 export async function createColumn(formData: FormData) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return { success: false, error: "Authorization required" };
   }
 
   const validatedFields = createColumnSchema.safeParse({
@@ -39,7 +44,7 @@ export async function createColumn(formData: FormData) {
       success: false,
       error:
         validatedFields.error.flatten().fieldErrors.name?.[0] ||
-        "Ошибка валидации",
+        "Validation error",
     };
   }
 
@@ -54,7 +59,7 @@ export async function createColumn(formData: FormData) {
     });
 
     if (!project) {
-      return { success: false, error: "Проект не найден" };
+      return { success: false, error: "Project is not found" };
     }
 
     const lastColumn = await db.query.columns.findFirst({
@@ -77,7 +82,7 @@ export async function createColumn(formData: FormData) {
     console.error("Create column error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при создании колонки",
+      error: "An error occurred while creating the column",
     };
   }
 }
@@ -86,7 +91,7 @@ export async function updateColumn(formData: FormData) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   const validatedFields = updateColumnSchema.safeParse({
@@ -101,11 +106,11 @@ export async function updateColumn(formData: FormData) {
       success: false,
       error:
         validatedFields.error.flatten().fieldErrors.name?.[0] ||
-        "Ошибка валидации",
+        "Validation error",
     };
   }
 
-  const { columnId, projectId, projectSlug, name } = validatedFields.data;
+  const { columnId, projectSlug, name } = validatedFields.data;
 
   try {
     const column = await db.query.columns.findFirst({
@@ -114,7 +119,7 @@ export async function updateColumn(formData: FormData) {
     });
 
     if (!column || column.project.userId !== session.user.id) {
-      return { success: false, error: "Колонка не найдена" };
+      return { success: false, error: "Column is not found" };
     }
 
     await db.update(columns).set({ name }).where(eq(columns.id, columnId));
@@ -126,7 +131,7 @@ export async function updateColumn(formData: FormData) {
     console.error("Update column error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при обновлении колонки",
+      error: "An error occurred while updating the column",
     };
   }
 }
@@ -135,7 +140,7 @@ export async function deleteColumn(columnId: string, projectSlug: string) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   try {
@@ -145,7 +150,7 @@ export async function deleteColumn(columnId: string, projectSlug: string) {
     });
 
     if (!column || column.project.userId !== session.user.id) {
-      return { success: false, error: "Колонка не найдена" };
+      return authorizationRequiredError;
     }
 
     await db.delete(columns).where(eq(columns.id, columnId));
@@ -157,7 +162,7 @@ export async function deleteColumn(columnId: string, projectSlug: string) {
     console.error("Delete column error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при удалении колонки",
+      error: "An error occurred while removing the column",
     };
   }
 }

@@ -41,15 +41,17 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
     setIsDeleting(false);
 
     if (result.success) {
-      toast({ title: "Проект удалён" });
+      toast({ title: "Project deleted" });
       await utils.project.getAll.invalidate();
       router.replace("/dashboard");
       setShowDeleteDialog(false);
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error || "Произошла ошибка",
+        title: "Error",
+        description:
+          (result as { success: boolean; error: string }).error ||
+          "Произошла ошибка",
       });
     }
   };

@@ -55,7 +55,7 @@ export function GlobalSearch() {
             <Command.Input
               value={search}
               onValueChange={setSearch}
-              placeholder="Поиск проектов и задач... (Ctrl+/)"
+              placeholder="Search for projects and tasks... (Ctrl+/)"
               className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none"
               autoFocus
             />
@@ -64,12 +64,12 @@ export function GlobalSearch() {
           <Command.List className="max-h-[400px] overflow-y-auto p-2">
             <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
               {search.length < 2
-                ? "Введите минимум 2 символа"
-                : "Ничего не найдено"}
+                ? "Please enter at least 2 characters"
+                : "Nothing found"}
             </Command.Empty>
 
             {results?.projects && results.projects.length > 0 && (
-              <Command.Group heading="Проекты" className="py-1">
+              <Command.Group heading="Projects" className="py-1">
                 {results.projects.map((project) => (
                   <Command.Item
                     key={project.id}

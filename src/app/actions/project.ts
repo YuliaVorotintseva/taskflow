@@ -9,26 +9,41 @@ import { projects, columns, projectMembers } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 
 const createProjectSchema = z.object({
-  name: z.string().min(1, "Название обязательно").max(100),
+  name: z.string().min(1, "Title is required").max(100),
   slug: z
     .string()
-    .min(3, "Минимум 3 символа")
-    .max(50, "Максимум 50 символов")
-    .regex(/^[a-z0-9-]+$/, "Только латинские буквы, цифры и дефис"),
+    .min(3, "The slug must contain at least 3 characters")
+    .max(50, "The slug must contain maximum 50 characters")
+    .regex(/^[a-z0-9-]+$/, "Only latin letters, numbers and hyphens"),
   description: z.string().max(500).optional(),
 });
 
 const updateProjectSchema = z.object({
   projectId: z.string().uuid(),
   currentSlug: z.string(),
-  name: z.string().min(1, "Название обязательно").max(100),
+  name: z.string().min(1, "Title is required").max(100),
   slug: z
     .string()
-    .min(3, "Минимум 3 символа")
-    .max(50, "Максимум 50 символов")
-    .regex(/^[a-z0-9-]+$/, "Только латинские буквы, цифры и дефис"),
+    .min(3, "The slug must contain at least 3 characters")
+    .max(50, "The slug must contain maximum 50 characters")
+    .regex(/^[a-z0-9-]+$/, "Only latin letters, numbers and hyphens"),
   description: z.string().max(500).optional(),
 });
+
+const authorizationRequiredError = {
+  success: false,
+  error: "Authorization required",
+};
+
+const sameUrlError = {
+  success: false,
+  error: "A project with this URL already exists",
+};
+
+const projectIsNotFoundError = {
+  success: false,
+  error: "Project is not found",
+};
 
 export type CreateProjectResult = {
   success: boolean;
@@ -50,7 +65,7 @@ export async function createProject(
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   const validatedFields = createProjectSchema.safeParse({
@@ -74,10 +89,7 @@ export async function createProject(
     });
 
     if (existingProject) {
-      return {
-        success: false,
-        error: "Проект с таким URL уже существует",
-      };
+      return sameUrlError;
     }
 
     const [project] = await db
@@ -113,7 +125,7 @@ export async function createProject(
     console.error("Create project error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при создании проекта",
+      error: "An error occurred while creating the project",
     };
   }
 }
@@ -124,7 +136,7 @@ export async function updateProject(
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   const validatedFields = updateProjectSchema.safeParse({
@@ -154,7 +166,7 @@ export async function updateProject(
     });
 
     if (!project) {
-      return { success: false, error: "Проект не найден" };
+      return projectIsNotFoundError;
     }
 
     if (slug !== currentSlug) {
@@ -166,10 +178,7 @@ export async function updateProject(
       });
 
       if (existingProject) {
-        return {
-          success: false,
-          error: "Проект с таким URL уже существует",
-        };
+        return sameUrlError;
       }
     }
 
@@ -196,7 +205,7 @@ export async function updateProject(
     console.error("Update project error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при обновлении проекта",
+      error: "An error occurred while updating the project",
     };
   }
 }
@@ -205,7 +214,7 @@ export async function deleteProject(projectId: string) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   try {
@@ -217,7 +226,7 @@ export async function deleteProject(projectId: string) {
     });
 
     if (!project) {
-      return { success: false, error: "Проект не найден" };
+      return projectIsNotFoundError;
     }
 
     await db.delete(projects).where(eq(projects.id, projectId));
@@ -229,7 +238,7 @@ export async function deleteProject(projectId: string) {
     console.error("Delete project error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при удалении проекта",
+      error: "An error occurred while removing the project",
     };
   }
 }

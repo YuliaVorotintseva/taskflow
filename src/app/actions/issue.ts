@@ -14,7 +14,7 @@ const prioritySchema = z.enum(["low", "medium", "high"]);
 const createIssueSchema = z.object({
   projectId: z.string().uuid(),
   columnId: z.string().uuid(),
-  title: z.string().min(1, "Название обязательно").max(200),
+  title: z.string().min(1, "Title is required").max(200),
   description: z.string().max(5000).optional(),
   priority: prioritySchema.optional(),
   projectSlug: z.string(),
@@ -39,11 +39,18 @@ const moveIssueSchema = z.object({
   newPosition: z.number().int().min(0),
 });
 
+const authorizationRequiredError = {
+  success: false,
+  error: "Authorization required",
+};
+
+const issueIsNotFoundError = { success: false, error: "Issue is not found" };
+
 export async function createIssue(formData: FormData) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   const validatedFields = createIssueSchema.safeParse({
@@ -60,7 +67,7 @@ export async function createIssue(formData: FormData) {
       success: false,
       error:
         validatedFields.error.flatten().fieldErrors.title?.[0] ||
-        "Ошибка валидации",
+        "Validation error",
     };
   }
 
@@ -76,7 +83,7 @@ export async function createIssue(formData: FormData) {
     });
 
     if (!project) {
-      return { success: false, error: "Проект не найден" };
+      return { success: false, error: "Project is not found" };
     }
 
     const lastIssue = await db.query.issues.findFirst({
@@ -124,7 +131,7 @@ export async function createIssue(formData: FormData) {
     console.error("Create issue error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при создании задачи",
+      error: "An error occurred while creating the issue",
     };
   }
 }
@@ -133,7 +140,7 @@ export async function updateIssue(formData: FormData) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   const validatedFields = updateIssueSchema.safeParse({
@@ -147,10 +154,7 @@ export async function updateIssue(formData: FormData) {
   });
 
   if (!validatedFields.success) {
-    return {
-      success: false,
-      error: "Ошибка валидации",
-    };
+    return authorizationRequiredError;
   }
 
   const { issueId, projectId, projectSlug, title, description, priority } =
@@ -162,7 +166,7 @@ export async function updateIssue(formData: FormData) {
     });
 
     if (!issue) {
-      return { success: false, error: "Задача не найдена" };
+      return issueIsNotFoundError;
     }
 
     const updateData: {
@@ -206,7 +210,7 @@ export async function updateIssue(formData: FormData) {
     console.error("Update issue error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при обновлении задачи",
+      error: "An error occurred while updating the issue",
     };
   }
 }
@@ -215,7 +219,7 @@ export async function moveIssue(formData: FormData) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   const validatedFields = moveIssueSchema.safeParse({
@@ -230,7 +234,7 @@ export async function moveIssue(formData: FormData) {
   if (!validatedFields.success) {
     return {
       success: false,
-      error: "Ошибка валидации",
+      error: "Validation error",
     };
   }
 
@@ -249,7 +253,7 @@ export async function moveIssue(formData: FormData) {
     });
 
     if (!issue) {
-      return { success: false, error: "Задача не найдена" };
+      return issueIsNotFoundError;
     }
 
     const [fromColumn, toColumn] = await Promise.all([
@@ -331,7 +335,7 @@ export async function moveIssue(formData: FormData) {
     console.error("Move issue error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при перемещении задачи",
+      error: "An error occurred while moving the issue",
     };
   }
 }
@@ -340,7 +344,7 @@ export async function deleteIssue(issueId: string, projectSlug: string) {
   const session = await auth();
 
   if (!session?.user?.id) {
-    return { success: false, error: "Необходима авторизация" };
+    return authorizationRequiredError;
   }
 
   try {
@@ -350,7 +354,7 @@ export async function deleteIssue(issueId: string, projectSlug: string) {
     });
 
     if (!issue || issue.project.userId !== session.user.id) {
-      return { success: false, error: "Задача не найдена" };
+      return issueIsNotFoundError;
     }
 
     await db.delete(issues).where(eq(issues.id, issueId));
@@ -373,7 +377,7 @@ export async function deleteIssue(issueId: string, projectSlug: string) {
     console.error("Delete issue error:", error);
     return {
       success: false,
-      error: "Произошла ошибка при удалении задачи",
+      error: "An error occurred while removing the issue",
     };
   }
 }

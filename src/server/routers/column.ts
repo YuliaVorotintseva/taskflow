@@ -7,7 +7,7 @@ import { columns, projects, issues } from "@/lib/db/schema";
 
 const createColumnSchema = z.object({
   projectId: z.string().uuid(),
-  name: z.string().min(1, "Название обязательно").max(50),
+  name: z.string().min(1, "Name is required").max(50),
 });
 
 const updateColumnSchema = z.object({
@@ -34,7 +34,7 @@ export const columnRouter = router({
       if (!project) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 
@@ -62,7 +62,7 @@ export const columnRouter = router({
       if (!project) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 
@@ -96,14 +96,14 @@ export const columnRouter = router({
       if (!existingColumn) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Колонка не найдена",
+          message: "Column not found",
         });
       }
 
       if (existingColumn.project.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Нет доступа",
+          message: "No access",
         });
       }
 
@@ -136,7 +136,7 @@ export const columnRouter = router({
       if (!project) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 
@@ -163,14 +163,14 @@ export const columnRouter = router({
       if (!existingColumn) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Колонка не найдена",
+          message: "Column not found",
         });
       }
 
       if (existingColumn.project.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Нет доступа",
+          message: "No access",
         });
       }
 

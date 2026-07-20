@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+
 import {
   Dialog,
   DialogContent,
@@ -70,8 +71,8 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
     if (!name.trim() || !slug.trim()) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: "Заполните обязательные поля",
+        title: "Error",
+        description: "Name and slug are required",
       });
       return;
     }
@@ -90,7 +91,7 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
     setIsSaving(false);
 
     if (result.success) {
-      toast({ title: "Проект обновлён" });
+      toast({ title: "Project updated" });
 
       await utils.project.getAll.invalidate();
       await utils.project.getBySlug.invalidate({ slug: project.slug });
@@ -106,8 +107,8 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error || "Произошла ошибка",
+        title: "Error",
+        description: result.error || "The error occurred",
       });
     }
   };
@@ -116,15 +117,15 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
     <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Редактировать проект</DialogTitle>
+          <DialogTitle>Edit project</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
           <div>
-            <Label htmlFor="name">Название *</Label>
+            <Label htmlFor="name">Name *</Label>
             <Input
               id="name"
-              placeholder="Мой проект"
+              placeholder="Project name"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               disabled={isSaving}
@@ -145,16 +146,16 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Только латинские буквы, цифры и дефис. Изменение URL изменит адрес
-              страницы проекта.
+              Only Latin letters, numbers, and hyphens are allowed; changing the
+              URL will change the project page address
             </p>
           </div>
 
           <div>
-            <Label htmlFor="description">Описание</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
               id="description"
-              placeholder="Краткое описание проекта"
+              placeholder="Project description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isSaving}
@@ -166,13 +167,13 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
               Отмена
             </Button>
             <Button onClick={handleSave} disabled={isSaving || !isDirty}>
-              {isSaving ? "Сохранение..." : "Сохранить изменения"}
+              {isSaving ? "..." : "Save changes"}
             </Button>
           </div>
 
           {isDirty && (
             <p className="text-xs text-amber-600 text-center">
-              ⚠ Есть несохранённые изменения
+              ⚠ There are unsaved changes
             </p>
           )}
         </div>

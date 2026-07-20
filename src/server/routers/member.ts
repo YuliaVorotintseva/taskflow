@@ -61,8 +61,7 @@ export const memberRouter = router({
       if (!currentMember || !["owner", "admin"].includes(currentMember.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message:
-            "Только владелец или администратор может приглашать участников",
+          message: "Only the owner or administrator can invite members",
         });
       }
 
@@ -73,7 +72,7 @@ export const memberRouter = router({
       if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Пользователь с таким email не найден",
+          message: "User with this email not found",
         });
       }
 
@@ -87,7 +86,7 @@ export const memberRouter = router({
       if (existingMember) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "Пользователь уже является участником проекта",
+          message: "The user is already a member of the project",
         });
       }
 
@@ -108,8 +107,8 @@ export const memberRouter = router({
       await ctx.db.insert(notifications).values({
         userId: user.id,
         type: "project_invited",
-        title: "Приглашение в проект",
-        message: `Вы были добавлены в проект "${project?.name}"`,
+        title: "Invitation to the project",
+        message: `You have been added to the project "${project?.name}"`,
         link: project ? `/${project.slug}` : null,
         metadata: {
           type: "project_invited",
@@ -134,14 +133,14 @@ export const memberRouter = router({
       if (!currentMember || currentMember.role !== "owner") {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Только владелец проекта может изменять роли",
+          message: "Only the project owner can change roles",
         });
       }
 
       if (input.userId === currentMember.userId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Нельзя изменить роль владельца проекта",
+          message: "The project owner role cannot be changed",
         });
       }
 
@@ -171,7 +170,7 @@ export const memberRouter = router({
       if (!currentMember || !["owner", "admin"].includes(currentMember.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Только владелец или администратор может удалять участников",
+          message: "Only the owner or administrator can delete members",
         });
       }
 
@@ -185,7 +184,7 @@ export const memberRouter = router({
       if (targetMember?.role === "owner") {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Нельзя удалить владельца проекта",
+          message: "Cannot remove project owner",
         });
       }
 

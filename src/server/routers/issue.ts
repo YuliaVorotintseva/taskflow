@@ -1,15 +1,12 @@
-import { z } from 'zod';
-import { eq, and, asc, desc, inArray } from 'drizzle-orm';
-import { router, protectedProcedure } from '../trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { eq, and, asc, desc, inArray } from "drizzle-orm";
+import { router, protectedProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
 
-import { 
-  issues,
-  columns,
-  projects
-} from '@/lib/db/schema';
+import { issues, columns, projects, Issue } from "@/lib/db/schema";
+import { db } from "@/lib/db";
 
-const prioritySchema = z.enum(['low', 'medium', 'high']);
+const prioritySchema = z.enum(["low", "medium", "high"]);
 
 const issueMetadataSchema = z.object({
   estimate: z.number().int().min(0).max(100).optional(),
@@ -21,7 +18,7 @@ const issueMetadataSchema = z.object({
 const createIssueSchema = z.object({
   projectId: z.string().uuid(),
   columnId: z.string().uuid(),
-  title: z.string().min(1, 'Название обязательно').max(200),
+  title: z.string().min(1, "Title is required").max(200),
   description: z.string().max(5000).optional(),
   metadata: issueMetadataSchema.optional(),
   assigneeId: z.string().optional(),
@@ -57,22 +54,29 @@ const getBoardSchema = z.object({
   filters: filterSchema.optional(),
 });
 
-async function verifyProjectAccess(
-  db: any,
-  projectId: string,
-  userId: string
-) {
+type DB = typeof db;
+
+type IssueUpdatePayload = Partial<
+  Pick<
+    Issue,
+    | "title"
+    | "description"
+    | "metadata"
+    | "columnId"
+    | "position"
+    | "assigneeId"
+  >
+> & { updatedAt: Date };
+
+async function verifyProjectAccess(db: DB, projectId: string, userId: string) {
   const project = await db.query.projects.findFirst({
-    where: and(
-      eq(projects.id, projectId),
-      eq(projects.userId, userId)
-    ),
+    where: and(eq(projects.id, projectId), eq(projects.userId, userId)),
   });
 
   if (!project) {
     throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Проект не найден или у вас нет доступа',
+      code: "NOT_FOUND",
+      message: "The project was not found or you do not have access",
     });
   }
 
@@ -94,7 +98,7 @@ export const issueRouter = router({
         return { columns: [] };
       }
 
-      const columnIds = projectColumns.map(c => c.id);
+      const columnIds = projectColumns.map((c) => c.id);
 
       const conditions = [
         inArray(issues.columnId, columnIds),
@@ -106,17 +110,17 @@ export const issueRouter = router({
       }
 
       if (input.filters?.priority) {
-        const { sql } = await import('drizzle-orm');
+        const { sql } = await import("drizzle-orm");
         conditions.push(
-          sql`${issues.metadata}->>'priority' = ${input.filters.priority}`
+          sql`${issues.metadata}->>'priority' = ${input.filters.priority}`,
         );
       }
 
       if (input.filters?.search) {
-        const { sql } = await import('drizzle-orm');
+        const { sql } = await import("drizzle-orm");
         const searchTerm = `%${input.filters.search}%`;
         conditions.push(
-          sql`(${issues.title} ILIKE ${searchTerm} OR ${issues.description} ILIKE ${searchTerm})`
+          sql`(${issues.title} ILIKE ${searchTerm} OR ${issues.description} ILIKE ${searchTerm})`,
         );
       }
 
@@ -135,15 +139,18 @@ export const issueRouter = router({
         orderBy: [asc(issues.position)],
       });
 
-      const issuesByColumn = allIssues.reduce((acc, issue) => {
-        if (!acc[issue.columnId]) {
-          acc[issue.columnId] = [];
-        }
-        acc[issue.columnId].push(issue);
-        return acc;
-      }, {} as Record<string, typeof allIssues>);
+      const issuesByColumn = allIssues.reduce(
+        (acc, issue) => {
+          if (!acc[issue.columnId]) {
+            acc[issue.columnId] = [];
+          }
+          acc[issue.columnId].push(issue);
+          return acc;
+        },
+        {} as Record<string, typeof allIssues>,
+      );
 
-      const columnsWithIssues = projectColumns.map(column => ({
+      const columnsWithIssues = projectColumns.map((column) => ({
         ...column,
         issues: issuesByColumn[column.id] || [],
       }));
@@ -178,8 +185,8 @@ export const issueRouter = router({
 
       if (!issue) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Задача не найдена',
+          code: "NOT_FOUND",
+          message: "Issue not found",
         });
       }
 
@@ -196,14 +203,14 @@ export const issueRouter = router({
       const column = await ctx.db.query.columns.findFirst({
         where: and(
           eq(columns.id, input.columnId),
-          eq(columns.projectId, input.projectId)
+          eq(columns.projectId, input.projectId),
         ),
       });
 
       if (!column) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Колонка не найдена в этом проекте',
+          code: "BAD_REQUEST",
+          message: "The column was not found in this project",
         });
       }
 
@@ -214,15 +221,18 @@ export const issueRouter = router({
 
       const newPosition = lastIssue ? lastIssue.position + 1 : 0;
 
-      const [newIssue] = await ctx.db.insert(issues).values({
-        projectId: input.projectId,
-        columnId: input.columnId,
-        title: input.title,
-        description: input.description || null,
-        metadata: input.metadata || {},
-        assigneeId: input.assigneeId || null,
-        position: newPosition,
-      }).returning();
+      const [newIssue] = await ctx.db
+        .insert(issues)
+        .values({
+          projectId: input.projectId,
+          columnId: input.columnId,
+          title: input.title,
+          description: input.description || null,
+          metadata: input.metadata || {},
+          assigneeId: input.assigneeId || null,
+          position: newPosition,
+        })
+        .returning();
 
       return newIssue;
     }),
@@ -236,21 +246,27 @@ export const issueRouter = router({
 
       if (!existingIssue) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Задача не найдена',
+          code: "NOT_FOUND",
+          message: "Issue not found",
         });
       }
 
-      await verifyProjectAccess(ctx.db, existingIssue.projectId, ctx.session.user.id!);
+      await verifyProjectAccess(
+        ctx.db,
+        existingIssue.projectId,
+        ctx.session.user.id!,
+      );
 
-      const updateData: any = {
+      const updateData: IssueUpdatePayload = {
         updatedAt: new Date(),
       };
 
       if (input.title !== undefined) updateData.title = input.title;
-      if (input.description !== undefined) updateData.description = input.description;
+      if (input.description !== undefined)
+        updateData.description = input.description;
       if (input.metadata !== undefined) updateData.metadata = input.metadata;
-      if (input.assigneeId !== undefined) updateData.assigneeId = input.assigneeId;
+      if (input.assigneeId !== undefined)
+        updateData.assigneeId = input.assigneeId;
 
       const [updatedIssue] = await ctx.db
         .update(issues)
@@ -270,24 +286,28 @@ export const issueRouter = router({
 
       if (!existingIssue) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Задача не найдена',
+          code: "NOT_FOUND",
+          message: "Issue not found",
         });
       }
 
-      await verifyProjectAccess(ctx.db, existingIssue.projectId, ctx.session.user.id!);
+      await verifyProjectAccess(
+        ctx.db,
+        existingIssue.projectId,
+        ctx.session.user.id!,
+      );
 
       const newColumn = await ctx.db.query.columns.findFirst({
         where: and(
           eq(columns.id, input.newColumnId),
-          eq(columns.projectId, existingIssue.projectId)
+          eq(columns.projectId, existingIssue.projectId),
         ),
       });
 
       if (!newColumn) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Целевая колонка не найдена',
+          code: "BAD_REQUEST",
+          message: "The target column was not found",
         });
       }
 
@@ -297,7 +317,7 @@ export const issueRouter = router({
           orderBy: [asc(issues.position)],
         });
 
-        const otherIssues = columnIssues.filter(i => i.id !== input.id);
+        const otherIssues = columnIssues.filter((i) => i.id !== input.id);
 
         const newOrder = [
           ...otherIssues.slice(0, input.newPosition),
@@ -309,7 +329,7 @@ export const issueRouter = router({
           ctx.db
             .update(issues)
             .set({ position: index })
-            .where(eq(issues.id, issue.id))
+            .where(eq(issues.id, issue.id)),
         );
 
         await Promise.all(updatePromises);
@@ -327,7 +347,7 @@ export const issueRouter = router({
 
         await ctx.db
           .update(issues)
-          .set({ 
+          .set({
             columnId: input.newColumnId,
             position: input.newPosition,
             updatedAt: new Date(),
@@ -335,9 +355,10 @@ export const issueRouter = router({
           .where(eq(issues.id, input.id));
 
         const updatePromises = newOrder
-          .filter(i => i.id !== input.id)
+          .filter((i) => i.id !== input.id)
           .map((issue, index) => {
-            const actualPosition = index < input.newPosition ? index : index + 1;
+            const actualPosition =
+              index < input.newPosition ? index : index + 1;
             return ctx.db
               .update(issues)
               .set({ position: actualPosition })
@@ -356,7 +377,7 @@ export const issueRouter = router({
             ctx.db
               .update(issues)
               .set({ position: index })
-              .where(eq(issues.id, issue.id))
+              .where(eq(issues.id, issue.id)),
           );
 
           await Promise.all(reindexPromises);
@@ -375,8 +396,8 @@ export const issueRouter = router({
 
       if (!column) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Колонка не найдена',
+          code: "NOT_FOUND",
+          message: "Column not found",
         });
       }
 
@@ -386,7 +407,7 @@ export const issueRouter = router({
         ctx.db
           .update(issues)
           .set({ position: index })
-          .where(eq(issues.id, issueId))
+          .where(eq(issues.id, issueId)),
       );
 
       await Promise.all(updatePromises);
@@ -403,16 +424,18 @@ export const issueRouter = router({
 
       if (!existingIssue) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Задача не найдена',
+          code: "NOT_FOUND",
+          message: "Issue not found",
         });
       }
 
-      await verifyProjectAccess(ctx.db, existingIssue.projectId, ctx.session.user.id!);
+      await verifyProjectAccess(
+        ctx.db,
+        existingIssue.projectId,
+        ctx.session.user.id!,
+      );
 
-      await ctx.db
-        .delete(issues)
-        .where(eq(issues.id, input.id));
+      await ctx.db.delete(issues).where(eq(issues.id, input.id));
 
       const columnIssues = await ctx.db.query.issues.findMany({
         where: eq(issues.columnId, existingIssue.columnId),
@@ -423,7 +446,7 @@ export const issueRouter = router({
         ctx.db
           .update(issues)
           .set({ position: index })
-          .where(eq(issues.id, issue.id))
+          .where(eq(issues.id, issue.id)),
       );
 
       await Promise.all(reindexPromises);
@@ -432,12 +455,14 @@ export const issueRouter = router({
     }),
 
   listByProject: protectedProcedure
-    .input(z.object({
-      projectId: z.string().uuid(),
-      filters: filterSchema.optional(),
-      limit: z.number().int().min(1).max(100).default(50),
-      offset: z.number().int().min(0).default(0),
-    }))
+    .input(
+      z.object({
+        projectId: z.string().uuid(),
+        filters: filterSchema.optional(),
+        limit: z.number().int().min(1).max(100).default(50),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       await verifyProjectAccess(ctx.db, input.projectId, ctx.session.user.id!);
 
@@ -448,17 +473,17 @@ export const issueRouter = router({
       }
 
       if (input.filters?.priority) {
-        const { sql } = await import('drizzle-orm');
+        const { sql } = await import("drizzle-orm");
         conditions.push(
-          sql`${issues.metadata}->>'priority' = ${input.filters.priority}`
+          sql`${issues.metadata}->>'priority' = ${input.filters.priority}`,
         );
       }
 
       if (input.filters?.search) {
-        const { sql } = await import('drizzle-orm');
+        const { sql } = await import("drizzle-orm");
         const searchTerm = `%${input.filters.search}%`;
         conditions.push(
-          sql`(${issues.title} ILIKE ${searchTerm} OR ${issues.description} ILIKE ${searchTerm})`
+          sql`(${issues.title} ILIKE ${searchTerm} OR ${issues.description} ILIKE ${searchTerm})`,
         );
       }
 

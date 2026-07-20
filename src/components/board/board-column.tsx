@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddIssueForm } from "./add-issue-form";
 import { Column, Issue } from "@/lib/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { useState } from "react";
 
 export const BoardColumn = ({
   column,
@@ -54,9 +54,7 @@ export const BoardColumn = ({
                       }
                       className="text-xs"
                     >
-                      {issue.metadata.priority === "high" && "Высокий"}
-                      {issue.metadata.priority === "medium" && "Средний"}
-                      {issue.metadata.priority === "low" && "Низкий"}
+                      {issue.metadata.priority}
                     </Badge>
                   )}
                 </CardContent>
@@ -79,7 +77,7 @@ export const BoardColumn = ({
               className="w-full justify-start text-muted-foreground"
               onClick={() => setIsAddingIssue(true)}
             >
-              + Добавить задачу
+              + Add new issue
             </Button>
           )}
         </CardContent>

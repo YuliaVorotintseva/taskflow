@@ -7,12 +7,12 @@ import { projects, columns, issues } from "@/lib/db/schema";
 
 const slugSchema = z
   .string()
-  .min(3, "Минимум 3 символа")
-  .max(50, "Максимум 50 символов")
-  .regex(/^[a-z0-9-]+$/, "Только латинские буквы, цифры и дефис");
+  .min(3, "The slug must contain at least 3 characters")
+  .max(50, "The slug must contain maximum 50 characters")
+  .regex(/^[a-z0-9-]+$/, "Only Latin letters, numbers and hyphens");
 
 const createProjectSchema = z.object({
-  name: z.string().min(1, "Название обязательно").max(100),
+  name: z.string().min(1, "Name is required").max(100),
   slug: slugSchema,
   description: z.string().max(500).optional(),
 });
@@ -61,7 +61,7 @@ export const projectRouter = router({
       if (!project) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 
@@ -81,7 +81,7 @@ export const projectRouter = router({
       if (!project) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 
@@ -101,7 +101,7 @@ export const projectRouter = router({
       if (existingProject) {
         throw new TRPCError({
           code: "CONFLICT",
-          message: "Проект с таким URL уже существует",
+          message: "A project with this URL already exists",
         });
       }
 
@@ -140,7 +140,7 @@ export const projectRouter = router({
       if (!existingProject) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 
@@ -175,7 +175,7 @@ export const projectRouter = router({
       if (!existingProject) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Проект не найден",
+          message: "Project not found",
         });
       }
 

@@ -30,9 +30,7 @@ export const IssueCard = ({
             }
             className="text-xs"
           >
-            {issue.metadata.priority === "high" && "Высокий"}
-            {issue.metadata.priority === "medium" && "Средний"}
-            {issue.metadata.priority === "low" && "Низкий"}
+            {issue.metadata.priority === "high"}
           </Badge>
         )}
       </CardContent>

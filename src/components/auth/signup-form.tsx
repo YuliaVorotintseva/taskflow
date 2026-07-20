@@ -22,13 +22,15 @@ import { toast } from "@/components/ui/use-toast";
 
 const signupSchema = z
   .object({
-    name: z.string().min(2, "Имя должно содержать минимум 2 символа"),
-    email: z.string().email("Некорректный email"),
-    password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
+    name: z.string().min(2, "The name must contain at least 2 characters"),
+    email: z.string().email("Incorrect email"),
+    password: z
+      .string()
+      .min(6, "The password must contain at least 6 characters"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Пароли не совпадают",
+    message: "The passwords don't match",
     path: ["confirmPassword"],
   });
 
@@ -59,8 +61,8 @@ export function SignupForm() {
 
       if (result.success) {
         toast({
-          title: "Регистрация успешна",
-          description: "Добро пожаловать в TaskFlow!",
+          title: "Successful registration",
+          description: "Welcome to TaskFlow!",
         });
 
         router.refresh();
@@ -71,8 +73,8 @@ export function SignupForm() {
       } else {
         toast({
           variant: "destructive",
-          title: "Ошибка регистрации",
-          description: result.error || "Произошла ошибка",
+          title: "Registration error",
+          description: result.error || "An error occurred",
         });
       }
     });
@@ -86,10 +88,10 @@ export function SignupForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Имя</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Иван Иванов"
+                  placeholder="Your name"
                   disabled={isPending}
                   {...field}
                 />
@@ -121,7 +123,7 @@ export function SignupForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Пароль</FormLabel>
+              <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input
                   placeholder="••••••••"
@@ -139,7 +141,7 @@ export function SignupForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Подтвердите пароль</FormLabel>
+              <FormLabel>Confirm your password</FormLabel>
               <FormControl>
                 <Input
                   placeholder="••••••••"
@@ -153,12 +155,12 @@ export function SignupForm() {
           )}
         />
         <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? "Регистрация..." : "Зарегистрироваться"}
+          {isPending ? "..." : "Log up"}
         </Button>
         <div className="text-center text-sm">
-          Уже есть аккаунт?{" "}
+          Already have an account?{" "}
           <Link href="/auth/signin" className="underline hover:text-primary">
-            Войти
+            Log in
           </Link>
         </div>
       </form>

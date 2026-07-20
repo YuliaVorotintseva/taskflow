@@ -16,7 +16,7 @@ export function IssuePage({ issue, projectSlug }: IssuePageProps) {
           href={`/${projectSlug}`}
           className="text-sm text-muted-foreground hover:underline"
         >
-          ← Назад к доске
+          ← Return to board
         </Link>
       </div>
 
@@ -27,7 +27,7 @@ export function IssuePage({ issue, projectSlug }: IssuePageProps) {
         <CardContent className="space-y-6">
           {issue.description && (
             <div>
-              <h3 className="font-semibold mb-2">Описание</h3>
+              <h3 className="font-semibold mb-2">Description</h3>
               <p className="text-sm">{issue.description}</p>
             </div>
           )}
@@ -37,17 +37,13 @@ export function IssuePage({ issue, projectSlug }: IssuePageProps) {
               {issue.metadata.priority && (
                 <div>
                   <h3 className="font-semibold mb-1">Приоритет</h3>
-                  <p className="text-sm">
-                    {issue.metadata.priority === "high" && "Высокий"}
-                    {issue.metadata.priority === "medium" && "Средний"}
-                    {issue.metadata.priority === "low" && "Низкий"}
-                  </p>
+                  <p className="text-sm">{issue.metadata.priority}</p>
                 </div>
               )}
               {issue.metadata.estimate && (
                 <div>
-                  <h3 className="font-semibold mb-1">Оценка</h3>
-                  <p className="text-sm">{issue.metadata.estimate} часов</p>
+                  <h3 className="font-semibold mb-1">Rate</h3>
+                  <p className="text-sm">{issue.metadata.estimate} hours</p>
                 </div>
               )}
             </div>

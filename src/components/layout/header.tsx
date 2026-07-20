@@ -32,7 +32,7 @@ export const Header = ({ user }: HeaderProps) => (
         className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
       >
         <LogOut className="h-4 w-4 mr-2" />
-        Выйти
+        Log out
       </Button>
     </div>
   </header>

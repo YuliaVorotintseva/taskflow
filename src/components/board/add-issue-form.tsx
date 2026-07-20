@@ -45,7 +45,7 @@ export const AddIssueForm = ({
     if (result.success) {
       setTitle("");
       toast({
-        title: "Задача создана",
+        title: "The issue is created",
       });
 
       await utils.issue.listByProject.invalidate({ projectId });
@@ -55,8 +55,8 @@ export const AddIssueForm = ({
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error,
+        title: "Error",
+        description: (result as { success: boolean; error: string }).error,
       });
     }
   };
@@ -64,7 +64,7 @@ export const AddIssueForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
       <Input
-        placeholder="Название задачи..."
+        placeholder="Title..."
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         disabled={isPending}
@@ -72,7 +72,7 @@ export const AddIssueForm = ({
       />
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={isPending}>
-          {isPending ? "Создание..." : "Создать"}
+          {isPending ? "..." : "Create"}
         </Button>
         <Button
           type="button"
@@ -81,7 +81,7 @@ export const AddIssueForm = ({
           onClick={onCancel}
           disabled={isPending}
         >
-          Отмена
+          Cancel
         </Button>
       </div>
     </form>

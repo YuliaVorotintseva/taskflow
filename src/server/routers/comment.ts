@@ -12,7 +12,7 @@ import {
 
 const createCommentSchema = z.object({
   issueId: z.string().uuid(),
-  content: z.string().min(1, "Комментарий не может быть пустым").max(5000),
+  content: z.string().min(1, "Content is required").max(5000),
   parentId: z.string().uuid().optional(),
 });
 
@@ -92,7 +92,7 @@ export const commentRouter = router({
         console.error("Get comments error:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Не удалось загрузить комментарии",
+          message: "Failed to load comments",
         });
       }
     }),
@@ -108,7 +108,7 @@ export const commentRouter = router({
       if (!issue) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Задача не найдена",
+          message: "Issue not found",
         });
       }
 
@@ -122,7 +122,7 @@ export const commentRouter = router({
       if (!member && issue.project.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Вы не являетесь участником этого проекта",
+          message: "You are not a member of this project",
         });
       }
 
@@ -140,8 +140,8 @@ export const commentRouter = router({
         await ctx.db.insert(notifications).values({
           userId: issue.assigneeId,
           type: "issue_commented",
-          title: "Новый комментарий",
-          message: `Оставил комментарий к задаче "${issue.title}"`,
+          title: "New comment",
+          message: `Left a comment on the task "${issue.title}"`,
           link: `/${issue.project.slug}/issue/${issue.id}`,
           metadata: {
             type: "issue_commented",
@@ -164,14 +164,14 @@ export const commentRouter = router({
       if (!comment) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Комментарий не найден",
+          message: "Comment not found",
         });
       }
 
       if (comment.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Вы можете редактировать только свои комментарии",
+          message: "You can only edit your own comments",
         });
       }
 
@@ -193,14 +193,14 @@ export const commentRouter = router({
       if (!comment) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Комментарий не найден",
+          message: "Comment not found",
         });
       }
 
       if (comment.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Вы можете удалять только свои комментарии",
+          message: "You can only edit your own comments",
         });
       }
 

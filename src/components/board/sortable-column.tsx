@@ -6,6 +6,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 
 import type { Column, Issue } from "@/lib/db/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,6 @@ import { SortableIssueCard } from "./sortable-issue-card";
 import { AddIssueForm } from "./add-issue-form";
 import { toast } from "../ui/use-toast";
 import { deleteColumn, updateColumn } from "@/app/actions/column";
-import { Check, Pencil, Trash2, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { ConfirmDialog } from "../ui/confirm-dialog";
 
@@ -51,8 +51,8 @@ export function SortableColumn({
     if (!trimmedTitle) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: "Название не может быть пустым",
+        title: "Error",
+        description: "Title is required",
       });
       setTitle(column.name);
       setIsEditingTitle(false);
@@ -79,8 +79,8 @@ export function SortableColumn({
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error,
+        title: "Error",
+        description: (result as { success: boolean; error: string }).error,
       });
       setTitle(column.name);
     }
@@ -90,8 +90,8 @@ export function SortableColumn({
     if (column.issues.length > 0) {
       toast({
         variant: "destructive",
-        title: "Нельзя удалить колонку",
-        description: `В колонке есть ${column.issues.length} задач(и). Переместите или удалите их сначала.`,
+        title: "The column cannot be deleted.",
+        description: `There are ${column.issues.length} issues in the column, please move or delete them first`,
       });
       return;
     }
@@ -99,13 +99,13 @@ export function SortableColumn({
     const result = await deleteColumn(column.id, projectSlug);
 
     if (result.success) {
-      toast({ title: "Колонка удалена" });
+      toast({ title: "Column is deleted" });
       setShowDeleteDialog(false);
     } else {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: result.error,
+        title: "Error",
+        description: (result as { success: boolean; error: string }).error,
       });
     }
   };
@@ -192,7 +192,7 @@ export function SortableColumn({
                       e.stopPropagation();
                       setIsEditingTitle(true);
                     }}
-                    title="Редактировать название"
+                    title="Edit title"
                   >
                     <Pencil className="h-3 w-3" />
                   </Button>
@@ -204,7 +204,7 @@ export function SortableColumn({
                       e.stopPropagation();
                       setShowDeleteDialog(false);
                     }}
-                    title="Удалить колонку"
+                    title="Delete column"
                     disabled={column.issues.length > 0}
                   >
                     <Trash2 className="h-3 w-3" />
@@ -246,7 +246,7 @@ export function SortableColumn({
                 className="w-full justify-start text-muted-foreground"
                 onClick={() => setIsAddingIssue(true)}
               >
-                + Добавить задачу
+                + Add new issue
               </Button>
             )}
           </div>
@@ -257,9 +257,9 @@ export function SortableColumn({
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         onConfirm={handleDeleteColumn}
-        title="Удалить колонку?"
-        description={`Вы уверены, что хотите удалить колонку "${column.name}"?`}
-        confirmText="Удалить"
+        title="Delete column?"
+        description={`Are you sure you want to delete the column "${column.name}"?`}
+        confirmText="Delete"
       />
     </div>
   );
