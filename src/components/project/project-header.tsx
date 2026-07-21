@@ -75,12 +75,12 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Users className="h-4 w-4 mr-2" />
-                  Участники
+                  Participants
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Участники проекта</DialogTitle>
+                  <DialogTitle>Project participants</DialogTitle>
                 </DialogHeader>
                 <MembersList
                   projectId={project.id}
@@ -96,7 +96,7 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
               className="hover:bg-primary/10 hover:text-primary hover:border-primary"
             >
               <Pencil className="h-4 w-4 mr-2" />
-              Редактировать
+              Edit
             </Button>
             <Button
               variant="outline"
@@ -106,7 +106,7 @@ export function ProjectHeader({ project, currentUserId }: ProjectHeaderProps) {
               className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? "Удаление..." : "Удалить"}
+              {isDeleting ? "..." : "Delete"}
             </Button>
           </div>
         </div>

@@ -180,6 +180,87 @@ taskflow/
 
 ## Screenshots
 
+### Register page
+
+![Register page](images/register.png)
+
+### Login page
+
+![Login page](images/login.png)
+
+### Dashboard
+
+![Dashboard](images/dashboard.png)
+
+### Project creating form
+
+![Project creating form](images/project_creating.png)
+
+### Project menu
+
+![Project menu](images/project_menu.png)
+
+### Edit project modal
+
+![Edit project modal](images/edit_project_modal.png)
+
+### Project board
+
+![Project board 1](images/board1.png)
+![Project board 2](images/board2.png)
+
+### Project board with activities and tasks
+
+![Project board 3](images/board_with_activities_and_tasks.png)
+
+### Add new column
+
+![Add new column](images/add_new_column.png)
+
+### Task creating
+
+![Task creating](images/task_creating.png)
+
+### Task moving
+
+![Task moving](images/move_task.png)
+
+### Modal for task editing and comments
+
+![Modal for task editing and comments](images/add_comment.png)
+
+### New comment added
+
+![New comment added](images/comment_added.png)
+
+### Reply to new comment added
+
+![Reply to new comment added](images/reply_added.png)
+
+### Tasks priority filters
+
+![Tasks priority filters](images/priority_filter.png)
+
+### Search tasks by title
+
+![Search tasks](images/search_task.png)
+
+### Projects participants list
+
+![Projects participants list](images/participants.png)
+
+### New participant invited
+
+![New participant invited](images/new_participant_added.png)
+
+### New participant role updating
+
+![Role updating](images/update_role.png)
+
+### New participant role updated
+
+![Role updated](images/role_updated.png)
+
 ## Key Implementation Features
 
 ### Architecture

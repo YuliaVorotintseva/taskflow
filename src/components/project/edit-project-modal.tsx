@@ -164,7 +164,7 @@ export function ProjectEditModal({ project, onClose }: ProjectEditModalProps) {
 
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose} disabled={isSaving}>
-              Отмена
+              Cancel
             </Button>
             <Button onClick={handleSave} disabled={isSaving || !isDirty}>
               {isSaving ? "..." : "Save changes"}

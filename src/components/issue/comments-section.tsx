@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Send, Reply, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { ru } from "date-fns/locale";
+import { enGB } from "date-fns/locale";
 
 import { trpc } from "@/components/providers";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -99,7 +99,7 @@ export function CommentsSection({
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(comment.createdAt), {
                         addSuffix: true,
-                        locale: ru,
+                        locale: enGB,
                       })}
                     </span>
                   </div>
@@ -149,7 +149,7 @@ export function CommentsSection({
                               <span className="text-xs text-muted-foreground">
                                 {formatDistanceToNow(
                                   new Date(reply.createdAt),
-                                  { addSuffix: true, locale: ru },
+                                  { addSuffix: true, locale: enGB },
                                 )}
                               </span>
                             </div>

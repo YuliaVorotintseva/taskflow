@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Bell, CheckCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { ru } from "date-fns/locale";
+import { enGB } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 
 export function NotificationsDropdown() {
@@ -104,7 +104,7 @@ export function NotificationsDropdown() {
                 <span className="text-xs text-muted-foreground mt-1">
                   {formatDistanceToNow(new Date(notification.createdAt), {
                     addSuffix: true,
-                    locale: ru,
+                    locale: enGB,
                   })}
                 </span>
               </DropdownMenuItem>

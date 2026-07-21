@@ -194,12 +194,8 @@ export const IssueModal = ({
           </div>
 
           <div className="text-xs text-muted-foreground pt-4 border-t">
-            <div>
-              Created: {new Date(issue.createdAt).toLocaleString("ru-RU")}
-            </div>
-            <div>
-              Updated: {new Date(issue.updatedAt).toLocaleString("ru-RU")}
-            </div>
+            <div>Created: {new Date(issue.createdAt).toLocaleString()}</div>
+            <div>Updated: {new Date(issue.updatedAt).toLocaleString()}</div>
             {isDirty && (
               <div className="text-amber-600 mt-1">
                 ⚠ There are unsaved changes (Cmd+S to save)

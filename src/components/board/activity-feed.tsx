@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { ru } from "date-fns/locale";
+import { enGB } from "date-fns/locale";
 
 import { api } from "@/lib/trpc/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,7 +53,7 @@ export async function ActivityFeed({ projectId }: ActivityFeedProps) {
               <p className="text-xs text-muted-foreground mt-1">
                 {formatDistanceToNow(new Date(activity.createdAt), {
                   addSuffix: true,
-                  locale: ru,
+                  locale: enGB,
                 })}
               </p>
             </CardContent>
